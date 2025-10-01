@@ -1,0 +1,1662 @@
+```python
+import logging
+import sys
+try:
+    import random
+    import pandas as pd
+    import json
+except ImportError as e:
+    print(f"Error: Missing required library {e.name}. Please install it using 'pip install {e.name}'.")
+    sys.exit(1)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('dashboard.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# --------------------------
+# --- REALISTIC DATA SETUP ---
+# --------------------------
+
+# Define branch names and payment types
+branch_names = ["Al Rigga", "Al Barsha", "Hamdan", "Khalidiya", "Muroor", "Satwa", "Shabiya", "Electra"]
+payment_types = [
+    "Receipts", "Cash", "NOON CARD", "Master card", "Careem CARD", "Visa Card",
+    "SMILES CARD", "Delivery CARD", "Delivery Cash", "ONLINE CASH", "Keeta CARD",
+    "DELIVERO CARD", "ONLINE CARD"
+]
+
+# Base values for 2023 data
+base_values = {
+    "All Outlets": {"Total": 4447282.47, "Count": 157481},
+    "Al Rigga": {"Total": 76198.20, "Count": 3680},
+    "Al Barsha": {"Total": 629719.75, "Count": 23756},
+    "Hamdan": {"Total": 722126.83, "Count": 24619},
+    "Khalidiya": {"Total": 571512.20, "Count": 19137},
+    "Muroor": {"Total": 493890.77, "Count": 16509},
+    "Satwa": {"Total": 557244.49, "Count": 19546},
+    "Shabiya": {"Total": 669003.30, "Count": 21870},
+    "Electra": {"Total": 727586.93, "Count": 28364}
+}
+
+# Payment method distribution
+payment_distribution = {
+    "Cash": 0.248, "NOON CARD": 0.213, "Master card": 0.128, "Careem CARD": 0.125,
+    "Visa Card": 0.119, "SMILES CARD": 0.051, "Delivery CARD": 0.040, "Delivery Cash": 0.037,
+    "ONLINE CASH": 0.014, "Keeta CARD": 0.008, "DELIVERO CARD": 0.008, "ONLINE CARD": 0.008
+}
+
+# Validate base data
+def validate_base_data():
+    if not branch_names or not payment_types:
+        logger.error("Branch names or payment types list is empty.")
+        raise ValueError("Branch names and payment types must not be empty.")
+    if not base_values or not payment_distribution:
+        logger.error("Base values or payment distribution is empty.")
+        raise ValueError("Base values and payment distribution must not be empty.")
+    for branch in branch_names + ["All Outlets"]:
+        if branch not in base_values:
+            logger.error(f"Missing base values for branch: {branch}")
+            raise ValueError(f"Base values missing for branch: {branch}")
+        if not all(key in base_values[branch] for key in ["Total", "Count"]):
+            logger.error(f"Invalid base values format for branch: {branch}")
+            raise ValueError(f"Base values for {branch} must include Total and Count.")
+    if abs(sum(payment_distribution.values()) - 1.0) > 0.01:
+        logger.error("Payment distribution percentages do not sum to approximately 1.")
+        raise ValueError("Payment distribution percentages must sum to approximately 1.")
+
+# Generate realistic 2023 data
+def generate_realistic_data(branch_name, base_values, payment_distribution):
+    try:
+        payment_rows = []
+        total_total = 0
+        total_count = 0
+        for payment_type, percentage in payment_distribution.items():
+            variation_total = random.uniform(0.95, 1.05)
+            variation_count = random.uniform(0.9, 1.1)
+            base_total = base_values["Total"] * percentage
+            base_count = base_values["Count"] * percentage
+            total = base_total * variation_total
+            count = int(base_count * variation_count)
+            average = total / count if count > 0 else 0
+            payment_rows.append({
+                "Type": payment_type,
+                "Total": total,
+                "Pct of Total": "",
+                "Count": count,
+                "Average": average
+            })
+            total_total += total
+            total_count += count
+
+        data = [{
+            "Type": "Receipts",
+            "Total": total_total,
+            "Pct of Total": "100%",
+            "Count": total_count,
+            "Average": total_total / total_count if total_count > 0 else 0
+        }]
+
+        for row in payment_rows:
+            row["Pct of Total"] = f"{(row['Total'] / total_total * 100):.2f}%" if total_total > 0 else "0.00%"
+            data.append(row)
+
+        return pd.DataFrame(data)
+    except Exception as e:
+        logger.error(f"Error generating data for branch {branch_name}: {str(e)}")
+        raise
+
+# Generate data for all branches
+try:
+    validate_base_data()
+    branches_2023 = {}
+    for branch in branch_names + ["All Outlets"]:
+        branches_2023[branch] = generate_realistic_data(branch, base_values[branch], payment_distribution)
+    all_years_data = {2023: branches_2023}
+except Exception as e:
+    logger.error(f"Failed to initialize 2023 data: {str(e)}")
+    sys.exit(1)
+
+# --------------------------
+# --- HELPER FUNCTIONS ---
+# --------------------------
+
+def generate_year_data(base_branches, growth_rate=0.1, months=12):
+    try:
+        if not base_branches:
+            logger.error("Base branches data is empty.")
+            raise ValueError("Base branches data cannot be empty.")
+        if months <= 0 or months > 12:
+            logger.error(f"Invalid number of months: {months}")
+            raise ValueError("Months must be between 1 and 12.")
+        if not isinstance(growth_rate, (int, float)):
+            logger.error(f"Invalid growth rate: {growth_rate}")
+            raise ValueError("Growth rate must be a number.")
+
+        year_data = {}
+        for branch_name, branch_2023 in base_branches.items():
+            branch_year = branch_2023.copy()
+            branch_year['Total'] = branch_2023['Total'] * (1 + growth_rate) * (months/12)
+            branch_year['Count'] = branch_2023['Count'] * (1 + growth_rate) * (months/12)
+            branch_year['Average'] = branch_year['Total'] / branch_year['Count'] if branch_year['Count'].sum() > 0 else 0
+            receipts_total = branch_year[branch_year['Type'] == 'Receipts']['Total'].values[0] if not branch_year[branch_year['Type'] == 'Receipts'].empty else 0
+            branch_year['Pct of Total'] = branch_year.apply(
+                lambda row: "100%" if row['Type'] == 'Receipts' else f"{(row['Total'] / receipts_total * 100):.2f}%" if receipts_total > 0 else "0.00%",
+                axis=1
+            )
+            year_data[branch_name] = branch_year
+        return year_data
+    except Exception as e:
+        logger.error(f"Error generating year data: {str(e)}")
+        raise
+
+def generate_monthly_data(annual_sales, annual_orders, months=12, growth_rate=0.0):
+    try:
+        if annual_sales < 0 or annual_orders < 0:
+            logger.error("Annual sales or orders cannot be negative.")
+            raise ValueError("Annual sales and orders must be non-negative.")
+        if months <= 0 or months > 12:
+            logger.error(f"Invalid number of months: {months}")
+            raise ValueError("Months must be between 1 and 12.")
+
+        monthly_sales = []
+        monthly_orders = []
+        base_monthly = annual_sales / months if months > 0 else 0
+        base_monthly_orders = annual_orders / months if months > 0 else 0
+
+        for i in range(months):
+            season = 1.2 if i in [5, 6, 7] else 0.8 if i in [0, 11] else 1.0
+            growth = 1 + growth_rate * (i / months)
+            monthly_sales.append(int(base_monthly * season * growth))
+            monthly_orders.append(int(base_monthly_orders * season * growth))
+
+        return monthly_sales, monthly_orders
+    except Exception as e:
+        logger.error(f"Error generating monthly data: {str(e)}")
+        raise
+
+def calculate_delivery_metrics(branch, year, data):
+    try:
+        df = data[f'data{year}']['payment_methods'].get(branch)
+        if df is None or df.empty:
+            logger.warning(f"No payment method data for branch {branch} in year {year}")
+            return {
+                'delivery_sales': 0,
+                'delivery_orders': 0,
+                'delivery_percentage': 0,
+                'avg_delivery_value': 0
+            }
+
+        delivery_sales = df[df['Type'].str.contains('Delivery|ONLINE', case=False)]['Total'].sum()
+        total_sales = df[df['Type'] == 'Receipts']['Total'].values[0] if not df[df['Type'] == 'Receipts'].empty else 0
+        delivery_orders = df[df['Type'].str.contains('Delivery|ONLINE', case=False)]['Count'].sum()
+        total_orders = df[df['Type'] == 'Receipts']['Count'].values[0] if not df[df['Type'] == 'Receipts'].empty else 0
+
+        return {
+            'delivery_sales': delivery_sales,
+            'delivery_orders': delivery_orders,
+            'delivery_percentage': (delivery_sales / total_sales * 100) if total_sales > 0 else 0,
+            'avg_delivery_value': (delivery_sales / delivery_orders) if delivery_orders > 0 else 0
+        }
+    except Exception as e:
+        logger.error(f"Error calculating delivery metrics for {branch} in {year}: {str(e)}")
+        return {
+            'delivery_sales': 0,
+            'delivery_orders': 0,
+            'delivery_percentage': 0,
+            'avg_delivery_value': 0
+        }
+
+def filter_delivery_online(all_years_data):
+    try:
+        filtered = {}
+        for year, branches_data in all_years_data.items():
+            filtered_year = {}
+            for branch, df in branches_data.items():
+                receipts_row = df[df['Type'] == 'Receipts']
+                delivery_online = df[df['Type'].str.contains('Delivery|ONLINE', case=False)]
+                if not delivery_online.empty:
+                    filtered_year[branch] = pd.concat([receipts_row, delivery_online])
+            if filtered_year:
+                filtered[year] = filtered_year
+        return filtered
+    except Exception as e:
+        logger.error(f"Error filtering delivery/online data: {str(e)}")
+        return {}
+
+def filter_platforms(all_years_data):
+    try:
+        platform_mapping = {
+            'NOON': ['NOON CARD'], 'Careem': ['Careem CARD'], 'Mastercard': ['Master card'],
+            'Visa': ['Visa Card'], 'Smiles': ['SMILES CARD'], 'Keeta': ['Keeta CARD'],
+            'Deliveroo': ['DELIVERO CARD']
+        }
+        filtered = {}
+        for year, branches_data in all_years_data.items():
+            filtered_year = {}
+            for branch, df in branches_data.items():
+                platform_data = {}
+                for platform, types_list in platform_mapping.items():
+                    df_platform = df[df['Type'].isin(types_list)]
+                    if not df_platform.empty:
+                        platform_data[platform] = df_platform
+                cash_df = df[df['Type'] == 'Cash']
+                if not cash_df.empty:
+                    platform_data['Cash'] = cash_df
+                if platform_data:
+                    filtered_year[branch] = platform_data
+            if filtered_year:
+                filtered[year] = filtered_year
+        return filtered
+    except Exception as e:
+        logger.error(f"Error filtering platforms: {str(e)}")
+        return {}
+
+# --------------------------
+# --- DASHBOARD HTML REPORT ---
+# --------------------------
+
+def generate_dashboard_html(output_file="Crispy_Chicken_Dashboard.html"):
+    try:
+        # Generate 2024 & 2025 data
+        year_2024 = generate_year_data(branches_2023, growth_rate=0.10)
+        year_2025 = generate_year_data(branches_2023, growth_rate=0.15, months=9)
+        all_years_data[2024] = year_2024
+        all_years_data[2025] = year_2025
+
+        # Calculate key metrics
+        total_revenue_2024 = sum(year_2024[branch].loc[0, 'Total'] for branch in branch_names if branch in year_2024)
+        total_revenue_2025 = sum(year_2025[branch].loc[0, 'Total'] for branch in branch_names if branch in year_2025)
+        growth_rate = ((total_revenue_2025 - total_revenue_2024) / total_revenue_2024 * 100) if total_revenue_2024 > 0 else 0
+
+        # Create dashboard data structure
+        dashboard_data = {
+            'branches': branch_names,
+            'branchNames': {name: f"Crispy Chicken - {name}" for name in branch_names},
+            'months': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'monthNames': {month: month for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']},
+            'data2024': {'sales': {}, 'orders': {}, 'payment_methods': year_2024},
+            'data2025': {'sales': {}, 'orders': {}, 'payment_methods': year_2025},
+            'userEntries': []
+        }
+
+        # Generate monthly sales and orders
+        for branch in branch_names:
+            try:
+                annual_sales_2024 = year_2024.get(branch, pd.DataFrame()).loc[0, 'Total'] if not year_2024.get(branch, pd.DataFrame()).empty else 0
+                annual_orders_2024 = year_2024.get(branch, pd.DataFrame()).loc[0, 'Count'] if not year_2024.get(branch, pd.DataFrame()).empty else 0
+                monthly_sales_2024, monthly_orders_2024 = generate_monthly_data(annual_sales_2024, annual_orders_2024, months=12, growth_rate=0.10)
+                dashboard_data['data2024']['sales'][branch] = monthly_sales_2024
+                dashboard_data['data2024']['orders'][branch] = monthly_orders_2024
+
+                annual_sales_2025 = year_2025.get(branch, pd.DataFrame()).loc[0, 'Total'] if not year_2025.get(branch, pd.DataFrame()).empty else 0
+                annual_orders_2025 = year_2025.get(branch, pd.DataFrame()).loc[0, 'Count'] if not year_2025.get(branch, pd.DataFrame()).empty else 0
+                monthly_sales_2025, monthly_orders_2025 = generate_monthly_data(annual_sales_2025, annual_orders_2025, months=9, growth_rate=0.15)
+                monthly_sales_2025 += [0] * 3
+                monthly_orders_2025 += [0] * 3
+                dashboard_data['data2025']['sales'][branch] = monthly_sales_2025
+                dashboard_data['data2025']['orders'][branch] = monthly_orders_2025
+            except Exception as e:
+                logger.warning(f"Error generating monthly data for {branch}: {str(e)}")
+                dashboard_data['data2024']['sales'][branch] = [0] * 12
+                dashboard_data['data2024']['orders'][branch] = [0] * 12
+                dashboard_data['data2025']['sales'][branch] = [0] * 12
+                dashboard_data['data2025']['orders'][branch] = [0] * 12
+
+        # Calculate delivery metrics
+        delivery_metrics_2024 = {}
+        delivery_metrics_2025 = {}
+        for branch in branch_names:
+            delivery_metrics_2024[branch] = calculate_delivery_metrics(branch, 2024, dashboard_data)
+            delivery_metrics_2025[branch] = calculate_delivery_metrics(branch, 2025, dashboard_data)
+
+        # Add monthly delivery orders
+        for year, delivery_metrics in [(2024, delivery_metrics_2024), (2025, delivery_metrics_2025)]:
+            dashboard_data[f'data{year}']['delivery_orders'] = {}
+            for branch in branch_names:
+                try:
+                    monthly_orders = dashboard_data[f'data{year}']['orders'][branch]
+                    annual_total_orders = sum(monthly_orders)
+                    annual_delivery_orders = delivery_metrics[branch]['delivery_orders']
+                    ratio = annual_delivery_orders / annual_total_orders if annual_total_orders > 0 else 0
+                    monthly_delivery_orders = [int(mo * ratio) for mo in monthly_orders]
+                    dashboard_data[f'data{year}']['delivery_orders'][branch] = monthly_delivery_orders
+                except Exception as e:
+                    logger.warning(f"Error calculating delivery orders for {branch} in {year}: {str(e)}")
+                    dashboard_data[f'data{year}']['delivery_orders'][branch] = [0] * 12
+
+        # Calculate year metrics
+        def calculate_year_metrics(year):
+            try:
+                data_year = dashboard_data[f'data{year}']
+                total_sales = sum(sum(data_year['sales'][branch]) for branch in branch_names if branch in data_year['sales'])
+                total_orders = sum(sum(data_year['orders'][branch]) for branch in branch_names if branch in data_year['orders'])
+                avg_order_value = total_sales / total_orders if total_orders > 0 else 0
+                total_delivery_sales = sum(delivery_metrics_2024[branch]['delivery_sales'] if year == 2024 else delivery_metrics_2025[branch]['delivery_sales'] for branch in branch_names)
+                total_delivery_orders = sum(delivery_metrics_2024[branch]['delivery_orders'] if year == 2024 else delivery_metrics_2025[branch]['delivery_orders'] for branch in branch_names)
+                delivery_percentage = (total_delivery_sales / total_sales * 100) if total_sales > 0 else 0
+                avg_delivery_value = total_delivery_sales / total_delivery_orders if total_delivery_orders > 0 else 0
+
+                return {
+                    "totalSales": total_sales,
+                    "totalOrders": total_orders,
+                    "averageOrderValue": avg_order_value,
+                    "totalDeliverySales": total_delivery_sales,
+                    "totalDeliveryOrders": total_delivery_orders,
+                    "averageDeliveryValue": avg_delivery_value,
+                    "deliveryPercentage": delivery_percentage
+                }
+            except Exception as e:
+                logger.error(f"Error calculating year metrics for {year}: {str(e)}")
+                return {
+                    "totalSales": 0,
+                    "totalOrders": 0,
+                    "averageOrderValue": 0,
+                    "totalDeliverySales": 0,
+                    "totalDeliveryOrders": 0,
+                    "averageDeliveryValue": 0,
+                    "deliveryPercentage": 0
+                }
+
+        metrics2024 = calculate_year_metrics(2024)
+        metrics2025 = calculate_year_metrics(2025)
+
+        # Compute additional insights
+        try:
+            max_branch_2024 = max(branch_names, key=lambda b: year_2024[b].loc[0, 'Total'] if b in year_2024 else 0)
+            max_sales_2024 = year_2024[max_branch_2024].loc[0, 'Total'] if max_branch_2024 in year_2024 else 0
+        except Exception as e:
+            logger.warning(f"Error finding top branch for 2024: {str(e)}")
+            max_branch_2024 = "Unknown"
+            max_sales_2024 = 0
+
+        order_diff = metrics2024['totalOrders'] - metrics2025['totalOrders']
+        opp_text = f"Potential to increase order volume by {order_diff:,.0f} orders by improving delivery efficiency." if order_diff > 0 else f"Order volume exceeded 2024 by {abs(order_diff):,.0f} orders."
+        imp_text = f"Sales declined by {abs(growth_rate):.1f}% in 2025, requiring strategic interventions." if growth_rate < 0 else f"Sales increased by {growth_rate:.1f}% in 2025, continue the momentum."
+        avg_order_change = ((metrics2025['averageOrderValue'] - metrics2024['averageOrderValue']) / metrics2024['averageOrderValue'] * 100) if metrics2024['averageOrderValue'] > 0 else 0
+        delivery_perc_change = ((metrics2025['deliveryPercentage'] - metrics2024['deliveryPercentage']) / metrics2024['deliveryPercentage'] * 100) if metrics2024['deliveryPercentage'] > 0 else 0
+        summer_share = (sum(sum(dashboard_data['data2024']['sales'][branch][5:8]) for branch in branch_names if branch in dashboard_data['data2024']['sales']) / metrics2024['totalSales'] * 100) if metrics2024['totalSales'] > 0 else 0
+
+        # Generate HTML content with enhanced responsiveness
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Crispy Chicken Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {{
+            --primary-color: #e74c3c;
+            --secondary-color: #f39c12;
+            --success-color: #27ae60;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #c0392b;
+            --warning-color: #d68910;
+            --online-color: #3498db;
+            --year2024-color: #e74c3c;
+            --year2025-color: #3498db;
+        }}
+
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            font-size: clamp(14px, 2.5vw, 16px);
+        }}
+
+        .container {{
+            max-width: 100%;
+            margin: 0 auto;
+            padding: clamp(10px, 3vw, 20px);
+        }}
+
+        header {{
+            background: linear-gradient(135deg, var(--primary-color), var(--danger-color));
+            color: white;
+            padding: clamp(20px, 5vw, 30px) 0;
+            border-radius: 10px;
+            margin-bottom: clamp(15px, 3vw, 30px);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }}
+
+        header::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff20" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,128C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }}
+
+        h1 {{
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }}
+
+        .subtitle {{
+            text-align: center;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            margin-top: 10px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }}
+
+        .year-selector {{
+            background: rgba(255, 255, 255, 0.2);
+            padding: clamp(10px, 3vw, 20px);
+            border-radius: 15px;
+            margin: clamp(10px, 2vw, 20px) auto;
+            max-width: min(1000px, 95vw);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }}
+
+        .year-buttons {{
+            display: flex;
+            justify-content: center;
+            gap: clamp(10px, 2vw, 20px);
+            margin-top: clamp(10px, 2vw, 15px);
+            flex-wrap: wrap;
+        }}
+
+        .year-btn {{
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 25px);
+            border-radius: 25px;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 120px;
+            touch-action: manipulation;
+        }}
+
+        .year-btn:hover {{
+            transform: translateY(-2px);
+        }}
+
+        .year-btn.active {{
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }}
+
+        .dashboard {{
+            display: grid;
+            grid-template-columns: minmax(250px, 300px) 1fr;
+            gap: clamp(15px, 3vw, 30px);
+            align-items: start;
+        }}
+
+        .sidebar {{
+            background: white;
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: clamp(10px, 2vw, 20px);
+            transition: transform 0.3s ease;
+        }}
+
+        .sidebar.collapsed {{
+            transform: translateX(-100%);
+            position: fixed;
+            z-index: 1000;
+            width: 80vw;
+            max-width: 300px;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }}
+
+        .sidebar-toggle {{
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1001;
+        }}
+
+        .sidebar h2 {{
+            margin-bottom: clamp(15px, 3vw, 25px);
+            color: var(--dark-color);
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: clamp(8px, 2vw, 12px);
+        }}
+
+        .menu-item {{
+            padding: clamp(10px, 2vw, 15px) clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(8px, 2vw, 15px);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 2vw, 12px);
+            font-weight: 500;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            min-height: 48px;
+            touch-action: manipulation;
+        }}
+
+        .menu-item:hover {{
+            background: var(--primary-color);
+            color: white;
+            transform: translateX(8px);
+        }}
+
+        .menu-item.active {{
+            background: var(--primary-color);
+            color: white;
+        }}
+
+        .menu-item i {{
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            width: clamp(20px, 4vw, 24px);
+        }}
+
+        .content {{
+            background: white;
+            border-radius: 15px;
+            padding: clamp(20px, 4vw, 35px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }}
+
+        .section {{
+            display: none;
+        }}
+
+        .section.active {{
+            display: block;
+        }}
+
+        .section h2 {{
+            color: var(--dark-color);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: clamp(10px, 2vw, 15px);
+        }}
+
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: clamp(15px, 3vw, 25px);
+            margin-bottom: clamp(20px, 4vw, 40px);
+        }}
+
+        .stat-card {{
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+        }}
+
+        .stat-card.year2024 {{
+            border-color: var(--year2024-color);
+        }}
+
+        .stat-card.year2025 {{
+            border-color: var(--year2025-color);
+        }}
+
+        .stat-card.total {{
+            border-color: var(--success-color);
+        }}
+
+        .stat-card h3 {{
+            color: var(--dark-color);
+            margin-bottom: clamp(10px, 2vw, 15px);
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+
+        .stat-value {{
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }}
+
+        .stat-card.year2024 .stat-value {{
+            color: var(--year2024-color);
+        }}
+
+        .stat-card.year2025 .stat-value {{
+            color: var(--year2025-color);
+        }}
+
+        .stat-card.total .stat-value {{
+            color: var(--success-color);
+        }}
+
+        .stat-detail {{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }}
+
+        .stat-label {{
+            color: #666;
+        }}
+
+        .stat-amount {{
+            font-weight: 500;
+        }}
+
+        .chart-container {{
+            background: white;
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            position: relative;
+        }}
+
+        .chart-container h3 {{
+            margin-bottom: clamp(15px, 3vw, 20px);
+            color: var(--dark-color);
+            font-size: clamp(1.2rem, 2.5vw, 1.4rem);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: clamp(8px, 2vw, 10px);
+        }}
+
+        .outlet-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: clamp(15px, 3vw, 25px);
+            margin: clamp(20px, 4vw, 30px) 0;
+        }}
+
+        .outlet-card {{
+            background: white;
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid;
+            position: relative;
+            transition: all 0.3s ease;
+        }}
+
+        .outlet-card.year2024 {{
+            border-color: var(--year2024-color);
+        }}
+
+        .outlet-card.year2025 {{
+            border-color: var(--year2025-color);
+        }}
+
+        .outlet-card h3 {{
+            margin-bottom: clamp(15px, 3vw, 20px);
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }}
+
+        .outlet-stats {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: clamp(10px, 2vw, 15px);
+            margin-bottom: clamp(15px, 3vw, 20px);
+        }}
+
+        .outlet-stat {{
+            background: #f8f9fa;
+            padding: clamp(10px, 2vw, 15px);
+            border-radius: 10px;
+            text-align: center;
+        }}
+
+        .outlet-stat-label {{
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            color: #666;
+            margin-bottom: 5px;
+        }}
+
+        .outlet-stat-value {{
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 700;
+        }}
+
+        .outlet-card.year2024 .outlet-stat-value {{
+            color: var(--year2024-color);
+        }}
+
+        .outlet-card.year2025 .outlet-stat-value {{
+            color: var(--year2025-color);
+        }}
+
+        .comparison-badge {{
+            display: inline-block;
+            padding: clamp(4px, 1vw, 5px) clamp(8px, 2vw, 12px);
+            border-radius: 20px;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            font-weight: 500;
+            margin-top: clamp(5px, 1vw, 10px);
+        }}
+
+        .comparison-badge.positive {{
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }}
+
+        .comparison-badge.negative {{
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }}
+
+        .comparison-badge.neutral {{
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }}
+
+        .delivery-trends-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: clamp(20px, 4vw, 30px) 0;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }}
+
+        .delivery-trends-table th {{
+            background: linear-gradient(135deg, var(--primary-color), var(--danger-color));
+            color: white;
+            padding: clamp(8px, 2vw, 12px);
+            text-align: left;
+            font-weight: 500;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            white-space: nowrap;
+        }}
+
+        .delivery-trends-table td {{
+            padding: clamp(8px, 2vw, 12px);
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+        }}
+
+        .delivery-trends-table tr:nth-child(even) {{
+            background-color: #f9f9f9;
+        }}
+
+        .delivery-trends-table tr:hover {{
+            background-color: #fff5f5;
+            transition: background-color 0.2s ease;
+        }}
+
+        .branch-name {{
+            font-weight: 500;
+        }}
+
+        .trend-cell {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }}
+
+        .trend-up {{
+            color: var(--success-color);
+        }}
+
+        .trend-down {{
+            color: var(--danger-color);
+        }}
+
+        .trend-neutral {{
+            color: var(--warning-color);
+        }}
+
+        .table-container {{
+            overflow-x: auto;
+            margin-bottom: clamp(20px, 4vw, 30px);
+            max-width: 100%;
+        }}
+
+        .insight-box {{
+            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+            border-left: 5px solid var(--success-color);
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 10px;
+            margin: clamp(15px, 3vw, 25px) 0;
+            position: relative;
+        }}
+
+        .insight-box h4 {{
+            color: var(--success-color);
+            margin-bottom: clamp(8px, 2vw, 10px);
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+        }}
+
+        .insight-box p {{
+            color: #666;
+            line-height: 1.6;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }}
+
+        .insights-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: clamp(15px, 3vw, 25px);
+            margin-bottom: clamp(20px, 4vw, 30px);
+        }}
+
+        .insight-card {{
+            background: white;
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }}
+
+        .insight-card h4 {{
+            color: var(--dark-color);
+            margin-bottom: clamp(10px, 2vw, 15px);
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+
+        .insight-card p {{
+            color: #666;
+            line-height: 1.6;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }}
+
+        .insight-metric {{
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 2vw, 10px);
+            margin-top: clamp(10px, 2vw, 15px);
+            padding-top: clamp(10px, 2vw, 15px);
+            border-top: 1px solid #eee;
+        }}
+
+        .insight-metric-value {{
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 700;
+        }}
+
+        .insight-metric-label {{
+            color: #666;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }}
+
+        .alert {{
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 10px;
+            margin-bottom: clamp(20px, 4vw, 30px);
+            border-left: 5px solid;
+        }}
+
+        .alert-success {{
+            background-color: rgba(39, 174, 96, 0.1);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }}
+
+        .alert-info {{
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: var(--online-color);
+            color: var(--online-color);
+        }}
+
+        .real-time-indicator {{
+            position: absolute;
+            top: clamp(10px, 2vw, 20px);
+            right: clamp(10px, 2vw, 20px);
+            display: flex;
+            align-items: center;
+            gap: clamp(6px, 1.5vw, 8px);
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+            padding: clamp(6px, 1.5vw, 8px) clamp(12px, 2.5vw, 16px);
+            border-radius: 20px;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }}
+
+        .real-time-dot {{
+            width: clamp(8px, 2vw, 10px);
+            height: clamp(8px, 2vw, 10px);
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }}
+
+        @keyframes pulse {{
+            0% {{ box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }}
+            70% {{ box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }}
+            100% {{ box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }}
+        }}
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {{
+            .dashboard {{
+                grid-template-columns: 1fr;
+            }}
+
+            .sidebar {{
+                position: static;
+                width: 100%;
+                margin-bottom: clamp(15px, 3vw, 20px);
+            }}
+
+            .sidebar.collapsed {{
+                transform: translateX(-100%);
+            }}
+
+            .sidebar-toggle {{
+                display: block;
+            }}
+
+            .content {{
+                padding: clamp(15px, 3vw, 20px);
+            }}
+        }}
+
+        @media (max-width: 768px) {{
+            .container {{
+                padding: clamp(8px, 2vw, 10px);
+            }}
+
+            h1 {{
+                font-size: clamp(1.5rem, 4vw, 2rem);
+            }}
+
+            .year-buttons {{
+                flex-direction: column;
+                align-items: center;
+                gap: clamp(8px, 2vw, 12px);
+            }}
+
+            .year-btn {{
+                width: 100%;
+                max-width: min(300px, 90vw);
+                padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 15px);
+                font-size: clamp(0.8rem, 2vw, 1rem);
+            }}
+
+            .stats-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .outlet-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .outlet-stats {{
+                grid-template-columns: 1fr;
+            }}
+
+            .delivery-trends-table {{
+                font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+            }}
+
+            .delivery-trends-table th, .delivery-trends-table td {{
+                padding: clamp(6px, 1.5vw, 8px);
+            }}
+
+            .insights-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            canvas {{
+                max-height: 300px;
+            }}
+        }}
+
+        @media (max-width: 480px) {{
+            .container {{
+                padding: clamp(5px, 1.5vw, 8px);
+            }}
+
+            h1 {{
+                font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+            }}
+
+            .subtitle {{
+                font-size: clamp(0.8rem, 2vw, 1rem);
+            }}
+
+            .sidebar {{
+                padding: clamp(10px, 2vw, 15px);
+            }}
+
+            .menu-item {{
+                font-size: clamp(0.8rem, 2vw, 0.9rem);
+                padding: clamp(8px, 2vw, 12px);
+            }}
+
+            .stat-card, .outlet-card, .insight-card {{
+                padding: clamp(10px, 2vw, 15px);
+            }}
+
+            .stat-value {{
+                font-size: clamp(1.5rem, 3.5vw, 2rem);
+            }}
+
+            .chart-container {{
+                padding: clamp(10px, 2vw, 15px);
+            }}
+
+            .delivery-trends-table th, .delivery-trends-table td {{
+                font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+                padding: clamp(4px, 1vw, 6px);
+            }}
+
+            .real-time-indicator {{
+                font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+                padding: clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px);
+            }}
+
+            canvas {{
+                max-height: 250px;
+            }}
+        }}
+
+        @media (min-width: 1600px) {{
+            .container {{
+                max-width: 1400px;
+            }}
+
+            .dashboard {{
+                grid-template-columns: 350px 1fr;
+            }}
+
+            .sidebar {{
+                padding: clamp(20px, 2vw, 30px);
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <header>
+            <div class="real-time-indicator">
+                <div class="real-time-dot"></div>
+                <span>Real-time Updates</span>
+            </div>
+            <h1><i class="fas fa-chart-line"></i> Crispy Chicken Dashboard</h1>
+            <div class="subtitle">Interactive Comparison Between 2024 and 2025 Performance</div>
+        </header>
+
+        <div class="year-selector">
+            <h3>Select Year for Analysis</h3>
+            <div class="year-buttons">
+                <button class="year-btn year2024 active" data-year="2024">
+                    <i class="fas fa-calendar-alt"></i> 2024
+                </button>
+                <button class="year-btn year2025" data-year="2025">
+                    <i class="fas fa-calendar-plus"></i> 2025
+                </button>
+                <button class="year-btn" data-year="comparison" style="background: var(--success-color); border-color: var(--success-color);">
+                    <i class="fas fa-balance-scale"></i> Compare Both Years
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <aside class="sidebar">
+                <h2><i class="fas fa-bars"></i> Navigation</h2>
+                <div class="menu-item active" data-section="overview">
+                    <i class="fas fa-tachometer-alt"></i> <span>Overview</span>
+                </div>
+                <div class="menu-item" data-section="branch-analysis">
+                    <i class="fas fa-store"></i> <span>Branch Analysis</span>
+                </div>
+                <div class="menu-item" data-section="delivery-trends">
+                    <i class="fas fa-truck"></i> <span>Delivery Trends</span>
+                </div>
+                <div class="menu-item" data-section="monthly-comparison">
+                    <i class="fas fa-calendar-alt"></i> <span>Monthly Trends</span>
+                </div>
+                <div class="menu-item" data-section="insights">
+                    <i class="fas fa-lightbulb"></i> <span>Key Insights</span>
+                </div>
+            </aside>
+
+            <main class="content">
+                <!-- Overview Section -->
+                <section id="overview" class="section active">
+                    <h2><i class="fas fa-chart-pie"></i> Performance Overview</h2>
+                    
+                    <div class="alert alert-success">
+                        <h3><i class="fas fa-check-circle"></i> Network Performance Summary</h3>
+                        <p>Compare total sales and performance metrics between 2024 and 2025 across all branches.</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card year2024">
+                            <h3><i class="fas fa-chart-line"></i> 2024 Performance</h3>
+                            <div class="stat-value">${metrics2024['totalSales']:,}</div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Total Transactions:</span>
+                                <span class="stat-amount">{metrics2024['totalOrders']:,}</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Delivery Sales:</span>
+                                <span class="stat-amount">${metrics2024['totalDeliverySales']:,}</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Average Value:</span>
+                                <span class="stat-amount">${metrics2024['averageOrderValue']:.2f}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card year2025">
+                            <h3><i class="fas fa-chart-line"></i> 2025 Performance</h3>
+                            <div class="stat-value">${metrics2025['totalSales']:,}</div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Total Transactions:</span>
+                                <span class="stat-amount">{metrics2025['totalOrders']:,}</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Delivery Sales:</span>
+                                <span class="stat-amount">${metrics2025['totalDeliverySales']:,}</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Average Value:</span>
+                                <span class="stat-amount">${metrics2025['averageOrderValue']:.2f}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card total">
+                            <h3><i class="fas fa-balance-scale"></i> Comparison Summary</h3>
+                            <div class="stat-value">{growth_rate:.1f}%</div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Sales Growth:</span>
+                                <span class="stat-amount">${metrics2025['totalSales'] - metrics2024['totalSales']:,}</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Transaction Change:</span>
+                                <span class="stat-amount">{((metrics2025['totalOrders'] - metrics2024['totalOrders']) / metrics2024['totalOrders'] * 100 if metrics2024['totalOrders'] > 0 else 0):.1f}%</span>
+                            </div>
+                            <div class="stat-detail">
+                                <span class="stat-label">Data Status:</span>
+                                <span class="stat-amount">2025 partial data</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-bar"></i> Year-over-Year Comparison</h3>
+                        <canvas id="year-overview-chart"></canvas>
+                    </div>
+
+                    <div class="insight-box">
+                        <h4><i class="fas fa-lightbulb"></i> Key Insight</h4>
+                        <p>{'Sales increased by ' + str(growth_rate) + '% in 2025 compared to 2024. Average order value increased by ' + str(avg_order_change) + '%.' if growth_rate > 0 else 'Sales decreased by ' + str(abs(growth_rate)) + '% in 2025 compared to 2024.'}</p>
+                    </div>
+                </section>
+
+                <!-- Branch Analysis Section -->
+                <section id="branch-analysis" class="section">
+                    <h2><i class="fas fa-store"></i> Branch Performance Analysis</h2>
+                    
+                    <div class="outlet-grid" id="outlet-grid">
+                        <!-- Outlet cards will be populated by JavaScript -->
+                    </div>
+
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-bar"></i> Branch Sales Comparison</h3>
+                        <canvas id="branch-comparison-chart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Delivery Trends Section -->
+                <section id="delivery-trends" class="section">
+                    <h2><i class="fas fa-truck"></i> Branch Delivery Trends</h2>
+                    
+                    <div class="alert alert-info">
+                        <h3><i class="fas fa-info-circle"></i> Delivery Performance Analysis</h3>
+                        <p>Compare delivery counts and amounts between 2024 and 2025 for all branches.</p>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3><i class="fas fa-table"></i> Delivery Counts Comparison</h3>
+                        <div class="table-container">
+                            <table class="delivery-trends-table">
+                                <thead>
+                                    <tr>
+                                        <th>Branch</th>
+                                        <th colspan="3">January</th>
+                                        <th colspan="3">February</th>
+                                        <th colspan="3">March</th>
+                                        <th colspan="3">April</th>
+                                        <th colspan="3">May</th>
+                                        <th colspan="3">June</th>
+                                        <th colspan="3">July</th>
+                                        <th colspan="3">August</th>
+                                        <th colspan="3">September</th>
+                                        <th colspan="3">October</th>
+                                        <th colspan="3">November</th>
+                                        <th colspan="3">December</th>
+                                    </tr>
+                                    <tr>
+                                        <th></th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                        <th>2024</th>
+                                        <th>2025</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="delivery-counts-tbody">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Monthly Trends Section -->
+                <section id="monthly-comparison" class="section">
+                    <h2><i class="fas fa-calendar-alt"></i> Monthly Performance Trends</h2>
+                    
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-line"></i> Monthly Sales Comparison</h3>
+                        <canvas id="monthly-sales-chart"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-bar"></i> Monthly Transaction Volume</h3>
+                        <canvas id="monthly-transactions-chart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Insights Section -->
+                <section id="insights" class="section">
+                    <h2><i class="fas fa-lightbulb"></i> Key Insights & Analysis</h2>
+                    
+                    <div class="alert alert-success">
+                        <h3><i class="fas fa-chart-line"></i> Performance Insights</h3>
+                        <p>Comprehensive analysis of business performance between 2024 and 2025.</p>
+                    </div>
+
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <h4><i class="fas fa-trophy"></i> Top Performing Branch (2024)</h4>
+                            <p>{max_branch_2024} branch led with ${max_sales_2024:,.2f} in sales.</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">${max_sales_2024:,.2f}</div>
+                                <div class="insight-metric-label">Total Sales</div>
+                            </div>
+                        </div>
+
+                        <div class="insight-card">
+                            <h4><i class="fas fa-chart-line"></i> Sales Trend Analysis</h4>
+                            <p>Average order value changed by {avg_order_change:.1f}%.</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">{avg_order_change:.1f}%</div>
+                                <div class="insight-metric-label">Avg Value Change</div>
+                            </div>
+                        </div>
+
+                        <div class="insight-card">
+                            <h4><i class="fas fa-mobile-alt"></i> Channel Performance</h4>
+                            <p>Delivery channel market share changed from {metrics2024['deliveryPercentage']:.1f}% to {metrics2025['deliveryPercentage']:.1f}%.</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">{delivery_perc_change:.1f}%</div>
+                                <div class="insight-metric-label">Delivery Channel Change</div>
+                            </div>
+                        </div>
+
+                        <div class="insight-card">
+                            <h4><i class="fas fa-calendar-alt"></i> Seasonal Patterns</h4>
+                            <p>Summer months (June-August) account for {summer_share:.1f}% of total sales.</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">{summer_share:.1f}%</div>
+                                <div class="insight-metric-label">Summer Sales Share</div>
+                            </div>
+                        </div>
+
+                        <div class="insight-card">
+                            <h4><i class="fas fa-bullseye"></i> Growth Opportunities</h4>
+                            <p>{opp_text}</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">{abs(order_diff):,.0f}</div>
+                                <div class="insight-metric-label">Order Volume {'Increase Potential' if order_diff > 0 else 'Exceeded'}</div>
+                            </div>
+                        </div>
+
+                        <div class="insight-card">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Areas for Improvement</h4>
+                            <p>{imp_text}</p>
+                            <div class="insight-metric">
+                                <div class="insight-metric-value">{abs(growth_rate):.1f}%</div>
+                                <div class="insight-metric-label">{'Sales Decline' if growth_rate < 0 else 'Sales Increase'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Dashboard data
+        const dashboardData = {json.dumps(dashboard_data, default=lambda x: x.to_dict() if isinstance(x, pd.DataFrame) else x)};
+        
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {{
+            try {{
+                // Initialize Year Overview Chart
+                const yearCtx = document.getElementById('year-overview-chart').getContext('2d');
+                new Chart(yearCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: ['Total Sales', 'Total Orders', 'Avg Order Value', 'Delivery Sales', 'Delivery Orders'],
+                        datasets: [{{
+                            label: '2024',
+                            data: [
+                                {metrics2024['totalSales']},
+                                {metrics2024['totalOrders']},
+                                {metrics2024['averageOrderValue']},
+                                {metrics2024['totalDeliverySales']},
+                                {metrics2024['totalDeliveryOrders']}
+                            ],
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            borderWidth: 1
+                        }}, {{
+                            label: '2025',
+                            data: [
+                                {metrics2025['totalSales']},
+                                {metrics2025['totalOrders']},
+                                {metrics2025['averageOrderValue']},
+                                {metrics2025['totalDeliverySales']},
+                                {metrics2025['totalDeliveryOrders']}
+                            ],
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'top',
+                                labels: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'Year-over-Year Performance Comparison',
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{ return value.toLocaleString(); }},
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            x: {{
+                                ticks: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                // Initialize Branch Comparison Chart
+                const branchCtx = document.getElementById('branch-comparison-chart').getContext('2d');
+                const branchLabels = {json.dumps(branch_names)};
+                const branchData2024 = branchLabels.map(branch => dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
+                const branchData2025 = branchLabels.map(branch => dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
+                
+                new Chart(branchCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: branchLabels,
+                        datasets: [{{
+                            label: '2024 Sales',
+                            data: branchData2024,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            borderWidth: 1
+                        }}, {{
+                            label: '2025 Sales',
+                            data: branchData2025,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'top',
+                                labels: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'Branch Sales Comparison',
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{ return '$' + value.toLocaleString(); }},
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            x: {{
+                                ticks: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                // Populate Outlet Cards
+                const outletGrid = document.getElementById('outlet-grid');
+                outletGrid.innerHTML = '';
+                
+                {json.dumps(branch_names)}.forEach(branch => {{
+                    const sales2024 = dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
+                    const sales2025 = dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
+                    const growth = sales2024 > 0 ? ((sales2025 - sales2024) / sales2024 * 100).toFixed(1) : 0;
+                    const badgeClass = growth > 0 ? 'positive' : growth < 0 ? 'negative' : 'neutral';
+                    
+                    const card = document.createElement('div');
+                    card.className = `outlet-card ${{growth > 0 ? 'year2025' : 'year2024'}}`;
+                    card.innerHTML = `
+                        <h3>
+                            ${{dashboardData.branchNames[branch] || branch}}
+                            <span class="comparison-badge ${{badgeClass}}">
+                                ${{growth > 0 ? '+' : ''}}${{growth}}%
+                            </span>
+                        </h3>
+                        <div class="outlet-stats">
+                            <div class="outlet-stat">
+                                <div class="outlet-stat-label">2024 Sales</div>
+                                <div class="outlet-stat-value">$${sales2024.toLocaleString()}</div>
+                            </div>
+                            <div class="outlet-stat">
+                                <div class="outlet-stat-label">2025 Sales</div>
+                                <div class="outlet-stat-value">$${sales2025.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `;
+                    outletGrid.appendChild(card);
+                }});
+
+                // Populate Delivery Counts Table
+                const deliveryTbody = document.getElementById('delivery-counts-tbody');
+                deliveryTbody.innerHTML = '';
+                
+                {json.dumps(branch_names)}.forEach(branch => {{
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="branch-name">${{dashboardData.branchNames[branch] || branch}}</td>`;
+                    
+                    dashboardData.months.forEach((month, index) => {{
+                        const count2024 = dashboardData.data2024.delivery_orders[branch]?.[index] || 0;
+                        const count2025 = dashboardData.data2025.delivery_orders[branch]?.[index] || 0;
+                        const change = count2024 > 0 ? ((count2025 - count2024) / count2024 * 100).toFixed(1) : 0;
+                        
+                        row.innerHTML += `
+                            <td>${{count2024.toLocaleString()}}</td>
+                            <td>${{count2025.toLocaleString()}}</td>
+                            <td class="trend-cell">
+                                <span class="${{change > 0 ? 'trend-up' : change < 0 ? 'trend-down' : 'trend-neutral'}}">
+                                    ${{change > 0 ? '+' : ''}}${{change}}%
+                                </span>
+                            </td>
+                        `;
+                    }});
+                    
+                    deliveryTbody.appendChild(row);
+                }});
+
+                // Initialize Monthly Charts
+                const monthlySalesCtx = document.getElementById('monthly-sales-chart').getContext('2d');
+                const monthlyTransactionsCtx = document.getElementById('monthly-transactions-chart').getContext('2d');
+                
+                const monthlySales2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.sales[branch]?.[i] || 0), 0));
+                const monthlySales2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.sales[branch]?.[i] || 0), 0));
+                const monthlyOrders2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.orders[branch]?.[i] || 0), 0));
+                const monthlyOrders2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.orders[branch]?.[i] || 0), 0));
+                
+                new Chart(monthlySalesCtx, {{
+                    type: 'line',
+                    data: {{
+                        labels: dashboardData.months,
+                        datasets: [{{
+                            label: '2024 Sales',
+                            data: monthlySales2024,
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            fill: true,
+                            borderDash: [0, 0]
+                        }}, {{
+                            label: '2025 Sales',
+                            data: monthlySales2025,
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            fill: true,
+                            borderDash: [5, 5],
+                            pointStyle: (ctx) => ctx.dataIndex >= 9 ? 'dash' : 'circle'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'top',
+                                labels: {{
