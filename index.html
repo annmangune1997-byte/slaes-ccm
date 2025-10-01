@@ -1,12 +1,9 @@
 import logging
 import sys
-try:
-    import random
-    import pandas as pd
-    import json
-except ImportError as e:
-    print(f"Error: Missing required library {e.name}. Please install it using 'pip install {e.name}'.")
-    sys.exit(1)
+import random
+import pandas as pd
+import json
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -71,7 +68,7 @@ def validate_base_data():
         raise ValueError("Payment distribution percentages must sum to approximately 1.")
 
 # Generate realistic 2023 data
-def generate_realistic_data(branch_name, base_values, payment_distribution):
+def generate_realistic_data(branch_name, branch_base_values, payment_distribution):
     try:
         payment_rows = []
         total_total = 0
@@ -79,8 +76,8 @@ def generate_realistic_data(branch_name, base_values, payment_distribution):
         for payment_type, percentage in payment_distribution.items():
             variation_total = random.uniform(0.95, 1.05)
             variation_count = random.uniform(0.9, 1.1)
-            base_total = base_values["Total"] * percentage
-            base_count = base_values["Count"] * percentage
+            base_total = branch_base_values["Total"] * percentage
+            base_count = branch_base_values["Count"] * percentage
             total = base_total * variation_total
             count = int(base_count * variation_count)
             average = total / count if count > 0 else 0
@@ -382,13 +379,13 @@ def generate_dashboard_html(output_file="Crispy_Chicken_Dashboard.html"):
         delivery_perc_change = ((metrics2025['deliveryPercentage'] - metrics2024['deliveryPercentage']) / metrics2024['deliveryPercentage'] * 100) if metrics2024['deliveryPercentage'] > 0 else 0
         summer_share = (sum(sum(dashboard_data['data2024']['sales'][branch][5:8]) for branch in branch_names if branch in dashboard_data['data2024']['sales']) / metrics2024['totalSales'] * 100) if metrics2024['totalSales'] > 0 else 0
 
-        # Generate HTML content with enhanced responsiveness
+        # Generate HTML content
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Crispy Chicken Dashboard</title>
+    <title>Crispy Chicken Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1423,385 +1420,401 @@ def generate_dashboard_html(output_file="Crispy_Chicken_Dashboard.html"):
         
         // Initialize charts
         document.addEventListener('DOMContentLoaded', function() {{
-            try {{
-                // Initialize Year Overview Chart
-                const yearCtx = document.getElementById('year-overview-chart').getContext('2d');
-                new Chart(yearCtx, {{
-                    type: 'bar',
-                    data: {{
-                        labels: ['Total Sales', 'Total Orders', 'Avg Order Value', 'Delivery Sales', 'Delivery Orders'],
-                        datasets: [{{
-                            label: '2024',
-                            data: [
-                                {metrics2024['totalSales']},
-                                {metrics2024['totalOrders']},
-                                {metrics2024['averageOrderValue']},
-                                {metrics2024['totalDeliverySales']},
-                                {metrics2024['totalDeliveryOrders']}
-                            ],
-                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
-                            borderColor: 'rgba(231, 76, 60, 1)',
-                            borderWidth: 1
-                        }}, {{
-                            label: '2025',
-                            data: [
-                                {metrics2025['totalSales']},
-                                {metrics2025['totalOrders']},
-                                {metrics2025['averageOrderValue']},
-                                {metrics2025['totalDeliverySales']},
-                                {metrics2025['totalDeliveryOrders']}
-                            ],
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            borderWidth: 1
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{
-                                position: 'top',
-                                labels: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            title: {{
-                                display: true,
-                                text: 'Year-over-Year Performance Comparison',
+            // Initialize Year Overview Chart
+            const yearCtx = document.getElementById('year-overview-chart').getContext('2d');
+            new Chart(yearCtx, {{
+                type: 'bar',
+                data: {{
+                    labels: ['Total Sales', 'Total Orders', 'Avg Order Value', 'Delivery Sales', 'Delivery Orders'],
+                    datasets: [{{
+                        label: '2024',
+                        data: [
+                            {metrics2024['totalSales']},
+                            {metrics2024['totalOrders']},
+                            {metrics2024['averageOrderValue']},
+                            {metrics2024['totalDeliverySales']},
+                            {metrics2024['totalDeliveryOrders']}
+                        ],
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    }}, {{
+                        label: '2025',
+                        data: [
+                            {metrics2025['totalSales']},
+                            {metrics2025['totalOrders']},
+                            {metrics2025['averageOrderValue']},
+                            {metrics2025['totalDeliverySales']},
+                            {metrics2025['totalDeliveryOrders']}
+                        ],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{
+                            position: 'top',
+                            labels: {{
                                 font: {{
-                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
                                 }}
                             }}
                         }},
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                ticks: {{
-                                    callback: function(value) {{ return value.toLocaleString(); }},
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
+                        title: {{
+                            display: true,
+                            text: 'Year-over-Year Performance Comparison',
+                            font: {{
+                                size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: true,
+                            ticks: {{
+                                callback: function(value) {{ return value.toLocaleString(); }},
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
                                 }}
-                            }},
-                            x: {{
-                                ticks: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
+                            }}
+                        }},
+                        x: {{
+                            ticks: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
                                 }}
                             }}
                         }}
                     }}
-                }});
-
-                // Initialize Branch Comparison Chart
-                const branchCtx = document.getElementById('branch-comparison-chart').getContext('2d');
-                const branchLabels = {json.dumps(branch_names)};
-                const branchData2024 = branchLabels.map(branch => dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
-                const branchData2025 = branchLabels.map(branch => dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
-                
-                new Chart(branchCtx, {{
-                    type: 'bar',
-                    data: {{
-                        labels: branchLabels,
-                        datasets: [{{
-                            label: '2024 Sales',
-                            data: branchData2024,
-                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
-                            borderColor: 'rgba(231, 76, 60, 1)',
-                            borderWidth: 1
-                        }}, {{
-                            label: '2025 Sales',
-                            data: branchData2025,
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            borderWidth: 1
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{
-                                position: 'top',
-                                labels: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            title: {{
-                                display: true,
-                                text: 'Branch Sales Comparison',
-                                font: {{
-                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
-                                }}
-                            }}
-                        }},
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                ticks: {{
-                                    callback: function(value) {{ return '$' + value.toLocaleString(); }},
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            x: {{
-                                ticks: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }}
-                }});
-
-                // Populate Outlet Cards
-                const outletGrid = document.getElementById('outlet-grid');
-                outletGrid.innerHTML = '';
-                
-                {json.dumps(branch_names)}.forEach(branch => {{
-                    const sales2024 = dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
-                    const sales2025 = dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
-                    const growth = sales2024 > 0 ? ((sales2025 - sales2024) / sales2024 * 100).toFixed(1) : 0;
-                    const badgeClass = growth > 0 ? 'positive' : growth < 0 ? 'negative' : 'neutral';
-                    
-                    const card = document.createElement('div');
-                    card.className = `outlet-card ${{growth > 0 ? 'year2025' : 'year2024'}}`;
-                    card.innerHTML = `
-                        <h3>
-                            ${{dashboardData.branchNames[branch] || branch}}
-                            <span class="comparison-badge ${{badgeClass}}">
-                                ${{growth > 0 ? '+' : ''}}${{growth}}%
-                            </span>
-                        </h3>
-                        <div class="outlet-stats">
-                            <div class="outlet-stat">
-                                <div class="outlet-stat-label">2024 Sales</div>
-                                <div class="outlet-stat-value">$${sales2024.toLocaleString()}</div>
-                            </div>
-                            <div class="outlet-stat">
-                                <div class="outlet-stat-label">2025 Sales</div>
-                                <div class="outlet-stat-value">$${sales2025.toLocaleString()}</div>
-                            </div>
-                        </div>
-                    `;
-                    outletGrid.appendChild(card);
-                }});
-
-                // Populate Delivery Counts Table
-                const deliveryTbody = document.getElementById('delivery-counts-tbody');
-                deliveryTbody.innerHTML = '';
-                
-                {json.dumps(branch_names)}.forEach(branch => {{
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td class="branch-name">${{dashboardData.branchNames[branch] || branch}}</td>`;
-                    
-                    dashboardData.months.forEach((month, index) => {{
-                        const count2024 = dashboardData.data2024.delivery_orders[branch]?.[index] || 0;
-                        const count2025 = dashboardData.data2025.delivery_orders[branch]?.[index] || 0;
-                        const change = count2024 > 0 ? ((count2025 - count2024) / count2024 * 100).toFixed(1) : 0;
-                        
-                        row.innerHTML += `
-                            <td>${{count2024.toLocaleString()}}</td>
-                            <td>${{count2025.toLocaleString()}}</td>
-                            <td class="trend-cell">
-                                <span class="${{change > 0 ? 'trend-up' : change < 0 ? 'trend-down' : 'trend-neutral'}}">
-                                    ${{change > 0 ? '+' : ''}}${{change}}%
-                                </span>
-                            </td>
-                        `;
-                    }});
-                    
-                    deliveryTbody.appendChild(row);
-                }});
-
-                // Initialize Monthly Charts
-                const monthlySalesCtx = document.getElementById('monthly-sales-chart').getContext('2d');
-                const monthlyTransactionsCtx = document.getElementById('monthly-transactions-chart').getContext('2d');
-                
-                const monthlySales2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.sales[branch]?.[i] || 0), 0));
-                const monthlySales2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.sales[branch]?.[i] || 0), 0));
-                const monthlyOrders2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.orders[branch]?.[i] || 0), 0));
-                const monthlyOrders2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.orders[branch]?.[i] || 0), 0));
-                
-                new Chart(monthlySalesCtx, {{
-                    type: 'line',
-                    data: {{
-                        labels: dashboardData.months,
-                        datasets: [{{
-                            label: '2024 Sales',
-                            data: monthlySales2024,
-                            borderColor: 'rgba(231, 76, 60, 1)',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            fill: true,
-                            borderDash: [0, 0]
-                        }}, {{
-                            label: '2025 Sales',
-                            data: monthlySales2025,
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            fill: true,
-                            borderDash: [5, 5],
-                            pointStyle: (ctx) => ctx.dataIndex >= 9 ? 'dash' : 'circle'
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{
-                                position: 'top',
-                                labels: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            title: {{
-                                display: true,
-                                text: 'Monthly Sales Comparison',
-                                font: {{
-                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
-                                }}
-                            }}
-                        }},
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                ticks: {{
-                                    callback: function(value) {{ return '$' + value.toLocaleString(); }},
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            x: {{
-                                ticks: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }}
-                }});
-
-                new Chart(monthlyTransactionsCtx, {{
-                    type: 'bar',
-                    data: {{
-                        labels: dashboardData.months,
-                        datasets: [{{
-                            label: '2024 Transactions',
-                            data: monthlyOrders2024,
-                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
-                            borderColor: 'rgba(231, 76, 60, 1)',
-                            borderWidth: 1
-                        }}, {{
-                            label: '2025 Transactions',
-                            data: monthlyOrders2025,
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            borderWidth: 1
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{
-                                position: 'top',
-                                labels: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            title: {{
-                                display: true,
-                                text: 'Monthly Transaction Volume',
-                                font: {{
-                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
-                                }}
-                            }}
-                        }},
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                ticks: {{
-                                    callback: function(value) {{ return value.toLocaleString(); }},
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }},
-                            x: {{
-                                ticks: {{
-                                    font: {{
-                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
-                                    }}
-                                }}
-                            }}
-                        }}
-                    }}
-                }});
-
-                // Navigation functionality
-                document.querySelectorAll('.menu-item').forEach(item => {{
-                    item.addEventListener('click', function() {{
-                        const section = this.getAttribute('data-section');
-                        document.querySelectorAll('.section').forEach(sec => {{
-                            sec.classList.remove('active');
-                        }});
-                        document.getElementById(section).classList.add('active');
-                        
-                        document.querySelectorAll('.menu-item').forEach(menuItem => {{
-                            menuItem.classList.remove('active');
-                        }});
-                        this.classList.add('active');
-                    }});
-                }});
-
-                // Year selector functionality
-                document.querySelectorAll('.year-btn').forEach(btn => {{
-                    btn.addEventListener('click', function() {{
-                        const year = this.getAttribute('data-year');
-                        document.querySelectorAll('.year-btn').forEach(b => {{
-                            b.classList.remove('active');
-                        }});
-                        this.classList.add('active');
-                        
-                        // Update charts based on selected year
-                        // This is where you would add logic to filter data based on selected year
-                    }});
-                }});
-
-                // Sidebar toggle functionality
-                function toggleSidebar() {{
-                    document.querySelector('.sidebar').classList.toggle('collapsed');
                 }}
-            }} catch (error) {{
-                console.error('Error initializing dashboard:', error);
+            }});
+
+            // Initialize Branch Comparison Chart
+            const branchCtx = document.getElementById('branch-comparison-chart').getContext('2d');
+            const branchLabels = {json.dumps(branch_names)};
+            const branchData2024 = branchLabels.map(branch => dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
+            const branchData2025 = branchLabels.map(branch => dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0);
+            
+            new Chart(branchCtx, {{
+                type: 'bar',
+                data: {{
+                    labels: branchLabels,
+                    datasets: [{{
+                        label: '2024 Sales',
+                        data: branchData2024,
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    }}, {{
+                        label: '2025 Sales',
+                        data: branchData2025,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{
+                            position: 'top',
+                            labels: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        title: {{
+                            display: true,
+                            text: 'Branch Sales Comparison',
+                            font: {{
+                                size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: true,
+                            ticks: {{
+                                callback: function(value) {{ return '$' + value.toLocaleString(); }},
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        x: {{
+                            ticks: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+
+            // Populate Outlet Cards
+            const outletGrid = document.getElementById('outlet-grid');
+            outletGrid.innerHTML = '';
+            
+            {json.dumps(branch_names)}.forEach(branch => {{
+                const sales2024 = dashboardData.data2024.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
+                const sales2025 = dashboardData.data2025.sales[branch]?.reduce((a, b) => a + b, 0) || 0;
+                const growth = sales2024 > 0 ? ((sales2025 - sales2024) / sales2024 * 100).toFixed(1) : 0;
+                const badgeClass = growth > 0 ? 'positive' : growth < 0 ? 'negative' : 'neutral';
+                
+                const card = document.createElement('div');
+                card.className = `outlet-card ${{growth > 0 ? 'year2025' : 'year2024'}}`;
+                card.innerHTML = `
+                    <h3>
+                        ${{dashboardData.branchNames[branch] || branch}}
+                        <span class="comparison-badge ${{badgeClass}}">
+                            ${{growth > 0 ? '+' : ''}}${{growth}}%
+                        </span>
+                    </h3>
+                    <div class="outlet-stats">
+                        <div class="outlet-stat">
+                            <div class="outlet-stat-label">2024 Sales</div>
+                            <div class="outlet-stat-value">$${sales2024.toLocaleString()}</div>
+                        </div>
+                        <div class="outlet-stat">
+                            <div class="outlet-stat-label">2025 Sales</div>
+                            <div class="outlet-stat-value">$${sales2025.toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+                outletGrid.appendChild(card);
+            }});
+
+            // Populate Delivery Counts Table
+            const deliveryTbody = document.getElementById('delivery-counts-tbody');
+            deliveryTbody.innerHTML = '';
+            
+            {json.dumps(branch_names)}.forEach(branch => {{
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="branch-name">${{dashboardData.branchNames[branch] || branch}}</td>`;
+                
+                dashboardData.months.forEach((month, index) => {{
+                    const count2024 = dashboardData.data2024.delivery_orders[branch]?.[index] || 0;
+                    const count2025 = dashboardData.data2025.delivery_orders[branch]?.[index] || 0;
+                    const change = count2024 > 0 ? ((count2025 - count2024) / count2024 * 100).toFixed(1) : 0;
+                    
+                    row.innerHTML += `
+                        <td>${{count2024.toLocaleString()}}</td>
+                        <td>${{count2025.toLocaleString()}}</td>
+                        <td class="trend-cell">
+                            <span class="${{change > 0 ? 'trend-up' : change < 0 ? 'trend-down' : 'trend-neutral'}}">
+                                ${{change > 0 ? '+' : ''}}${{change}}%
+                            </span>
+                        </td>
+                    `;
+                }});
+                
+                deliveryTbody.appendChild(row);
+            }});
+
+            // Initialize Monthly Charts
+            const monthlySalesCtx = document.getElementById('monthly-sales-chart').getContext('2d');
+            const monthlyTransactionsCtx = document.getElementById('monthly-transactions-chart').getContext('2d');
+            
+            const monthlySales2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.sales[branch]?.[i] || 0), 0));
+            const monthlySales2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.sales[branch]?.[i] || 0), 0));
+            const monthlyOrders2024 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2024.orders[branch]?.[i] || 0), 0));
+            const monthlyOrders2025 = dashboardData.months.map((_, i) => dashboardData.branches.reduce((sum, branch) => sum + (dashboardData.data2025.orders[branch]?.[i] || 0), 0));
+            
+            new Chart(monthlySalesCtx, {{
+                type: 'line',
+                data: {{
+                    labels: dashboardData.months,
+                    datasets: [{{
+                        label: '2024 Sales',
+                        data: monthlySales2024,
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        fill: true,
+                        borderDash: [0, 0]
+                    }}, {{
+                        label: '2025 Sales',
+                        data: monthlySales2025,
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        borderDash: [5, 5],
+                        pointStyle: (ctx) => ctx.dataIndex >= 9 ? 'dash' : 'circle'
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{
+                            position: 'top',
+                            labels: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        title: {{
+                            display: true,
+                            text: 'Monthly Sales Comparison',
+                            font: {{
+                                size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: true,
+                            ticks: {{
+                                callback: function(value) {{ return '$' + value.toLocaleString(); }},
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        x: {{
+                            ticks: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+
+            new Chart(monthlyTransactionsCtx, {{
+                type: 'bar',
+                data: {{
+                    labels: dashboardData.months,
+                    datasets: [{{
+                        label: '2024 Orders',
+                        data: monthlyOrders2024,
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    }}, {{
+                        label: '2025 Orders',
+                        data: monthlyOrders2025,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{
+                            position: 'top',
+                            labels: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        title: {{
+                            display: true,
+                            text: 'Monthly Transaction Volume',
+                            font: {{
+                                size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        y: {{
+                            beginAtZero: true,
+                            ticks: {{
+                                callback: function(value) {{ return value.toLocaleString(); }},
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }},
+                        x: {{
+                            ticks: {{
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+
+            // Navigation functionality
+            const menuItems = document.querySelectorAll('.menu-item');
+            const sections = document.querySelectorAll('.section');
+            const yearButtons = document.querySelectorAll('.year-btn');
+
+            menuItems.forEach(item => {{
+                item.addEventListener('click', () => {{
+                    const targetSection = item.getAttribute('data-section');
+                    
+                    // Update active menu item
+                    menuItems.forEach(mi => mi.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Show target section
+                    sections.forEach(section => {{
+                        section.classList.remove('active');
+                        if (section.id === targetSection) {{
+                            section.classList.add('active');
+                        }}
+                    }});
+                }});
+            }});
+
+            // Year selector functionality
+            yearButtons.forEach(button => {{
+                button.addEventListener('click', () => {{
+                    const selectedYear = button.getAttribute('data-year');
+                    
+                    // Update active year button
+                    yearButtons.forEach(btn => {{
+                        btn.classList.remove('active');
+                        if (btn.getAttribute('data-year') === selectedYear) {{
+                            btn.classList.add('active');
+                        }}
+                    }});
+                    
+                    // Update charts based on selected year
+                    // This would typically filter the data shown in the charts
+                    console.log(`Selected year: ${{selectedYear}}`);
+                }});
+            }});
+
+            // Sidebar toggle functionality
+            function toggleSidebar() {{
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('collapsed');
             }}
         }});
     </script>
 </body>
-</html>
-"""
+</html>"""
 
+        # Write the HTML to file
         with open(output_file, 'w') as f:
             f.write(html_content)
+        
         logger.info(f"Dashboard generated successfully: {output_file}")
         return output_file
     except Exception as e:
         logger.error(f"Error generating dashboard: {str(e)}")
-        return None
+        raise
 
+# Generate the dashboard
 if __name__ == "__main__":
-    generate_dashboard_html()
+    try:
+        dashboard_file = generate_dashboard_html()
+        print(f"Dashboard created successfully: {dashboard_file}")
+    except Exception as e:
+        print(f"Error creating dashboard: {str(e)}")
+        sys.exit(1)
