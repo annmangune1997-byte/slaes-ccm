@@ -1,4 +1,3 @@
-```python
 import logging
 import sys
 try:
@@ -1660,3 +1659,149 @@ def generate_dashboard_html(output_file="Crispy_Chicken_Dashboard.html"):
                             legend: {{
                                 position: 'top',
                                 labels: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'Monthly Sales Comparison',
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{ return '$' + value.toLocaleString(); }},
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            x: {{
+                                ticks: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                new Chart(monthlyTransactionsCtx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: dashboardData.months,
+                        datasets: [{{
+                            label: '2024 Transactions',
+                            data: monthlyOrders2024,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            borderWidth: 1
+                        }}, {{
+                            label: '2025 Transactions',
+                            data: monthlyOrders2025,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{
+                            legend: {{
+                                position: 'top',
+                                labels: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            title: {{
+                                display: true,
+                                text: 'Monthly Transaction Volume',
+                                font: {{
+                                    size: window.innerWidth <= 480 ? 14 : window.innerWidth <= 768 ? 16 : 18
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            y: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    callback: function(value) {{ return value.toLocaleString(); }},
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }},
+                            x: {{
+                                ticks: {{
+                                    font: {{
+                                        size: window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 12 : 14
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                // Navigation functionality
+                document.querySelectorAll('.menu-item').forEach(item => {{
+                    item.addEventListener('click', function() {{
+                        const section = this.getAttribute('data-section');
+                        document.querySelectorAll('.section').forEach(sec => {{
+                            sec.classList.remove('active');
+                        }});
+                        document.getElementById(section).classList.add('active');
+                        
+                        document.querySelectorAll('.menu-item').forEach(menuItem => {{
+                            menuItem.classList.remove('active');
+                        }});
+                        this.classList.add('active');
+                    }});
+                }});
+
+                // Year selector functionality
+                document.querySelectorAll('.year-btn').forEach(btn => {{
+                    btn.addEventListener('click', function() {{
+                        const year = this.getAttribute('data-year');
+                        document.querySelectorAll('.year-btn').forEach(b => {{
+                            b.classList.remove('active');
+                        }});
+                        this.classList.add('active');
+                        
+                        // Update charts based on selected year
+                        // This is where you would add logic to filter data based on selected year
+                    }});
+                }});
+
+                // Sidebar toggle functionality
+                function toggleSidebar() {{
+                    document.querySelector('.sidebar').classList.toggle('collapsed');
+                }}
+            }} catch (error) {{
+                console.error('Error initializing dashboard:', error);
+            }}
+        }});
+    </script>
+</body>
+</html>
+"""
+
+        with open(output_file, 'w') as f:
+            f.write(html_content)
+        logger.info(f"Dashboard generated successfully: {output_file}")
+        return output_file
+    except Exception as e:
+        logger.error(f"Error generating dashboard: {str(e)}")
+        return None
+
+if __name__ == "__main__":
+    generate_dashboard_html()
