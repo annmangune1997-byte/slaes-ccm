@@ -13,6 +13,7 @@
       --success: #28a745;
       --danger: #dc3545;
       --info: #17a2b8;
+      --warning: #ffc107;
       --light: #f8f9fa;
       --dark: #343a40;
       --white: #fff;
@@ -28,12 +29,13 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
       padding: 0;
       direction: ltr;
       color: #333;
       line-height: 1.6;
+      min-height: 100vh;
     }
 
     .container {
@@ -46,10 +48,10 @@
     header {
       background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       color: var(--white);
-      padding: 20px 0;
-      border-radius: 15px;
+      padding: 30px 0;
+      border-radius: 20px;
       margin-bottom: 30px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       position: relative;
       overflow: hidden;
     }
@@ -67,7 +69,7 @@
 
     h1 {
       text-align: center;
-      font-size: 2.5rem;
+      font-size: 2.8rem;
       margin-bottom: 10px;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
       position: relative;
@@ -76,7 +78,7 @@
 
     .subtitle {
       text-align: center;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       opacity: 0.9;
       position: relative;
       z-index: 1;
@@ -84,10 +86,10 @@
 
     .card {
       background: var(--white);
-      border-radius: 15px;
-      box-shadow: var(--shadow);
-      padding: 25px;
-      margin-bottom: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 30px;
       transition: var(--transition);
       position: relative;
       overflow: hidden;
@@ -95,14 +97,14 @@
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       border-bottom: 2px solid var(--light);
       padding-bottom: 15px;
     }
@@ -230,35 +232,79 @@
 
     .dashboard {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
       margin-top: 30px;
     }
 
     .stat-card {
       background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       color: var(--white);
-      padding: 25px;
-      border-radius: 15px;
+      padding: 30px;
+      border-radius: 20px;
       text-align: center;
-      box-shadow: var(--shadow);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.3; }
     }
 
     .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(255, 107, 53, 0.4);
+    }
+
+    .stat-card.success {
+      background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);
+    }
+
+    .stat-card.danger {
+      background: linear-gradient(135deg, var(--danger) 0%, #f86c6b 100%);
+    }
+
+    .stat-card.info {
+      background: linear-gradient(135deg, var(--info) 0%, #4dabf7 100%);
+    }
+
+    .stat-card.warning {
+      background: linear-gradient(135deg, var(--warning) 0%, #ffd43b 100%);
     }
 
     .stat-card h3 {
-      font-size: 2.5rem;
-      margin: 10px 0;
+      font-size: 3rem;
+      margin: 15px 0;
       font-weight: 900;
+      position: relative;
+      z-index: 1;
     }
 
     .stat-card p {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.8;
     }
 
     .filter-group {
@@ -278,7 +324,7 @@
       border-collapse: collapse;
       margin-top: 20px;
       background: var(--white);
-      border-radius: 10px;
+      border-radius: 15px;
       overflow: hidden;
       box-shadow: var(--shadow);
     }
@@ -368,7 +414,7 @@
     }
 
     .badge-warning {
-      background: #ffc107;
+      background: var(--warning);
       color: #212529;
     }
 
@@ -388,11 +434,11 @@
     .modal-content {
       background: var(--white);
       padding: 30px;
-      border-radius: 15px;
+      border-radius: 20px;
       width: 90%;
       max-width: 600px;
       position: relative;
-      box-shadow: var(--shadow);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       max-height: 80vh;
       overflow-y: auto;
     }
@@ -426,8 +472,27 @@
 
     .chart-container {
       position: relative;
-      height: 300px;
+      height: 350px;
       margin: 20px 0;
+      background: var(--white);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
     }
 
     .pivot-table {
@@ -450,13 +515,6 @@
     .pivot-table .highlight {
       background-color: rgba(255, 107, 53, 0.2);
       font-weight: bold;
-    }
-
-    .analysis-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
     }
 
     .reason-table {
@@ -623,38 +681,6 @@
       color: var(--danger);
     }
 
-    .penalty-section {
-      background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 20px;
-      border-left: 5px solid var(--danger);
-    }
-
-    .penalty-section h3 {
-      color: var(--danger);
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .penalty-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-    }
-
-    .penalty-item:last-child {
-      border-bottom: none;
-    }
-
-    .penalty-amount {
-      font-weight: bold;
-      color: var(--danger);
-    }
-
     .whatsapp-report {
       background: #f0f2f5;
       border-radius: 15px;
@@ -716,6 +742,47 @@
       background: #e55a2b;
     }
 
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .kpi-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .kpi-card h4 {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+
+    .kpi-card .value {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    .kpi-card .change {
+      font-size: 0.85rem;
+      margin-top: 5px;
+      opacity: 0.8;
+    }
+
+    .kpi-card.positive .change {
+      color: #4ade80;
+    }
+
+    .kpi-card.negative .change {
+      color: #f87171;
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 10px;
@@ -726,6 +793,10 @@
       }
       
       .dashboard {
+        grid-template-columns: 1fr;
+      }
+      
+      .charts-grid {
         grid-template-columns: 1fr;
       }
       
@@ -878,56 +949,90 @@
     </form>
   </div>
 
-  <!-- Dashboard -->
+  <!-- Enhanced Dashboard -->
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">
         <i class="fas fa-chart-line"></i>
-        Dashboard
+        Enhanced Dashboard
       </h2>
     </div>
+    
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card positive">
+        <h4>Today's Orders</h4>
+        <div class="value" id="todayOrders">0</div>
+        <div class="change" id="todayOrdersChange">+0%</div>
+      </div>
+      <div class="kpi-card negative">
+        <h4>Today's Cancellations</h4>
+        <div class="value" id="todayCancellations">0</div>
+        <div class="change" id="todayCancellationsChange">+0%</div>
+      </div>
+      <div class="kpi-card positive">
+        <h4>Avg Order Value</h4>
+        <div class="value" id="avgOrderValue">AED 0</div>
+        <div class="change" id="avgOrderValueChange">+0%</div>
+      </div>
+      <div class="kpi-card negative">
+        <h4>Unjustified Rate</h4>
+        <div class="value" id="unjustifiedRate">0%</div>
+        <div class="change" id="unjustifiedRateChange">+0%</div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Cards -->
     <div class="dashboard">
       <div class="stat-card">
         <i class="fas fa-shopping-cart fa-2x"></i>
         <h3 id="totalOrders">0</h3>
         <p>Total Orders</p>
       </div>
-      <div class="stat-card">
+      <div class="stat-card danger">
         <i class="fas fa-times-circle fa-2x"></i>
         <h3 id="cancelledOrders">0</h3>
         <p>Cancelled Orders</p>
       </div>
-      <div class="stat-card">
+      <div class="stat-card success">
         <i class="fas fa-check-circle fa-2x"></i>
         <h3 id="deliveredOrders">0</h3>
         <p>Delivered Orders</p>
       </div>
-      <div class="stat-card">
+      <div class="stat-card warning">
         <i class="fas fa-percentage fa-2x"></i>
         <h3 id="cancellationRate">0%</h3>
         <p>Cancellation Rate</p>
       </div>
-      <div class="stat-card">
+      <div class="stat-card danger">
         <i class="fas fa-exclamation-triangle fa-2x"></i>
         <h3 id="unjustifiedCancellations">0</h3>
         <p>Unjustified Cancellations</p>
       </div>
-      <div class="stat-card">
+      <div class="stat-card info">
         <i class="fas fa-money-bill-wave fa-2x"></i>
-        <h3 id="penaltyAmount">AED 0.00</h3>
-        <p>Total Penalty Amount</p>
+        <h3 id="totalRevenue">AED 0.00</h3>
+        <p>Total Revenue</p>
       </div>
     </div>
     
-    <!-- Charts -->
-    <div class="analysis-section">
+    <!-- Enhanced Charts -->
+    <div class="charts-grid">
       <div class="chart-container">
-        <h3>Cancellation Rate by Channel</h3>
+        <div class="chart-title">Order Status Distribution</div>
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Cancellation Rate by Channel</div>
         <canvas id="channelChart"></canvas>
       </div>
       <div class="chart-container">
-        <h3>Cancellations by Location</h3>
+        <div class="chart-title">Orders by Location</div>
         <canvas id="locationChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Performance Trend (Last 7 Days)</div>
+        <canvas id="trendChart"></canvas>
       </div>
     </div>
   </div>
@@ -971,7 +1076,7 @@
     <div class="card-header">
       <h2 class="card-title">
         <i class="fas fa-table"></i>
-        Pivot Table: Cancellations by Location and Channel
+        Pivot Table: Orders by Location and Channel
       </h2>
     </div>
     <div class="pivot-table">
@@ -981,6 +1086,7 @@
             <th>Location</th>
             <th>ONLY DELIVERY</th>
             <th>ONLINE-PICK-UP</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody id="pivotTableBody">
@@ -1017,25 +1123,6 @@
         <!-- Generated dynamically -->
       </tbody>
     </table>
-  </div>
-
-  <!-- Penalty Summary -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">
-        <i class="fas fa-gavel"></i>
-        Penalty Summary
-      </h2>
-    </div>
-    <div class="penalty-section">
-      <h3><i class="fas fa-exclamation-circle"></i> Unjustified Cancellations Requiring Penalty</h3>
-      <div id="penaltySummary">
-        <div class="penalty-item">
-          <span>No unjustified cancellations found</span>
-          <span class="penalty-amount">AED 0.00</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Filters -->
@@ -1268,7 +1355,7 @@
 
 <script>
 let orders = JSON.parse(localStorage.getItem('orders') || '[]');
-let channelChart, locationChart;
+let statusChart, channelChart, locationChart, trendChart;
 
 // Set today's date as default for report
 document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
@@ -1281,7 +1368,6 @@ window.addEventListener('DOMContentLoaded', function() {
   generatePivotTable();
   updateCharts();
   generateReasonsTable('all');
-  updatePenaltySummary();
 });
 
 // Function to set current date and time
@@ -1583,7 +1669,6 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
   generatePivotTable();
   updateCharts();
   generateReasonsTable('all');
-  updatePenaltySummary();
   
   showNotification('Order added successfully!');
 });
@@ -1688,23 +1773,70 @@ function renderTable() {
   });
 }
 
-// Update dashboard
+// Enhanced Dashboard Update
 function updateDashboard() {
   const total = orders.length;
   const cancelled = orders.filter(o => o.status === 'cancelled').length;
   const delivered = orders.filter(o => o.status === 'delivered').length;
   const rate = total ? ((cancelled/total)*100).toFixed(1) : 0;
   const unjustified = orders.filter(o => o.reasonStatus === 'غير مقبول ❌').length;
-  const penaltyAmount = orders
-    .filter(o => o.reasonStatus === 'غير مقبول ❌')
-    .reduce((sum, o) => sum + o.total, 0);
+  const unjustifiedRate = cancelled ? ((unjustified/cancelled)*100).toFixed(1) : 0;
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const avgOrderValue = total ? (totalRevenue / total).toFixed(2) : 0;
   
+  // Update main dashboard cards
   document.getElementById('totalOrders').textContent = total;
   document.getElementById('cancelledOrders').textContent = cancelled;
   document.getElementById('deliveredOrders').textContent = delivered;
   document.getElementById('cancellationRate').textContent = rate + '%';
   document.getElementById('unjustifiedCancellations').textContent = unjustified;
-  document.getElementById('penaltyAmount').textContent = `AED ${penaltyAmount.toFixed(2)}`;
+  document.getElementById('totalRevenue').textContent = `AED ${totalRevenue.toFixed(2)}`;
+  
+  // Update KPI cards
+  const today = new Date().toISOString().split('T')[0];
+  const todayOrders = orders.filter(o => o.orderDate === today);
+  const todayCancelled = todayOrders.filter(o => o.status === 'cancelled');
+  const todayDelivered = todayOrders.filter(o => o.status === 'delivered');
+  const todayRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0);
+  const todayAvgValue = todayOrders.length ? (todayRevenue / todayOrders.length).toFixed(2) : 0;
+  
+  document.getElementById('todayOrders').textContent = todayOrders.length;
+  document.getElementById('todayCancellations').textContent = todayCancelled.length;
+  document.getElementById('avgOrderValue').textContent = `AED ${todayAvgValue}`;
+  document.getElementById('unjustifiedRate').textContent = unjustifiedRate + '%';
+  
+  // Calculate changes (compared to yesterday)
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterdayOrders = orders.filter(o => o.orderDate === yesterdayStr);
+  const yesterdayCancelled = yesterdayOrders.filter(o => o.status === 'cancelled');
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, o) => sum + o.total, 0);
+  const yesterdayAvgValue = yesterdayOrders.length ? (yesterdayRevenue / yesterdayOrders.length).toFixed(2) : 0;
+  
+  // Update change indicators
+  const ordersChange = yesterdayOrders.length ? 
+    (((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100).toFixed(0) : 0;
+  const cancellationsChange = yesterdayCancelled.length ? 
+    (((todayCancelled.length - yesterdayCancelled.length) / yesterdayCancelled.length) * 100).toFixed(0) : 0;
+  const avgValueChange = yesterdayAvgValue ? 
+    (((todayAvgValue - yesterdayAvgValue) / yesterdayAvgValue) * 100).toFixed(0) : 0;
+  
+  document.getElementById('todayOrdersChange').textContent = `${ordersChange >= 0 ? '+' : ''}${ordersChange}%`;
+  document.getElementById('todayCancellationsChange').textContent = `${cancellationsChange >= 0 ? '+' : ''}${cancellationsChange}%`;
+  document.getElementById('avgOrderValueChange').textContent = `${avgValueChange >= 0 ? '+' : ''}${avgValueChange}%`;
+  document.getElementById('unjustifiedRateChange').textContent = '0%';
+  
+  // Update KPI card classes
+  const todayOrdersCard = document.querySelector('.kpi-card:nth-child(1)');
+  const todayCancellationsCard = document.querySelector('.kpi-card:nth-child(2)');
+  const avgOrderValueCard = document.querySelector('.kpi-card:nth-child(3)');
+  const unjustifiedRateCard = document.querySelector('.kpi-card:nth-child(4)');
+  
+  todayOrdersCard.className = ordersChange >= 0 ? 'kpi-card positive' : 'kpi-card negative';
+  todayCancellationsCard.className = cancellationsChange <= 0 ? 'kpi-card positive' : 'kpi-card negative';
+  avgOrderValueCard.className = avgValueChange >= 0 ? 'kpi-card positive' : 'kpi-card negative';
+  unjustifiedRateCard.className = 'kpi-card negative';
 }
 
 // Generate pivot table
@@ -1718,11 +1850,14 @@ function generatePivotTable() {
     const row = document.createElement('tr');
     row.innerHTML = `<td><strong>${location}</strong></td>`;
     
+    let locationTotal = 0;
     channels.forEach(channel => {
       const channelOrders = orders.filter(o => o.branch === location && o.channel === channel);
       const totalOrders = channelOrders.reduce((sum, o) => sum + o.count, 0);
       const totalPrice = channelOrders.reduce((sum, o) => sum + o.total, 0);
       const unacceptableCount = channelOrders.filter(o => o.reasonStatus === 'غير مقبول ❌').length;
+      
+      locationTotal += totalOrders;
       
       let cellContent = `${totalOrders}<br>AED ${totalPrice.toFixed(2)}`;
       if (unacceptableCount > 0) {
@@ -1732,53 +1867,55 @@ function generatePivotTable() {
       row.innerHTML += `<td>${cellContent}</td>`;
     });
     
+    // Add total column
+    row.innerHTML += `<td><strong>${locationTotal}</strong></td>`;
     tbody.appendChild(row);
   });
 }
 
-// Update penalty summary
-function updatePenaltySummary() {
-  const penaltySummary = document.getElementById('penaltySummary');
-  const unjustifiedOrders = orders.filter(o => o.reasonStatus === 'غير مقبول ❌');
-  
-  if (unjustifiedOrders.length === 0) {
-    penaltySummary.innerHTML = `
-      <div class="penalty-item">
-        <span>No unjustified cancellations found</span>
-        <span class="penalty-amount">AED 0.00</span>
-      </div>
-    `;
-    return;
-  }
-  
-  let html = '';
-  let totalAmount = 0;
-  
-  unjustifiedOrders.forEach(order => {
-    const amount = order.total;
-    totalAmount += amount;
-    
-    html += `
-      <div class="penalty-item">
-        <span>${order.orderNumber} - ${order.channel} - ${order.branch} (${order.agentName}): ${order.reason}</span>
-        <span class="penalty-amount">AED ${amount.toFixed(2)}</span>
-      </div>
-    `;
-  });
-  
-  html += `
-    <div class="penalty-item" style="border-top: 2px solid var(--danger); margin-top: 10px; padding-top: 10px; font-weight: bold;">
-      <span>Total Penalty Amount</span>
-      <span class="penalty-amount">AED ${totalAmount.toFixed(2)}</span>
-    </div>
-  `;
-  
-  penaltySummary.innerHTML = html;
-}
-
 // Update charts
 function updateCharts() {
-  // Channel Chart
+  // Status Chart (Doughnut)
+  const statusData = {
+    delivered: orders.filter(o => o.status === 'delivered').length,
+    cancelled: orders.filter(o => o.status === 'cancelled').length
+  };
+  
+  if (statusChart) statusChart.destroy();
+  
+  const statusCtx = document.getElementById('statusChart').getContext('2d');
+  statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Delivered', 'Cancelled'],
+      datasets: [{
+        data: [statusData.delivered, statusData.cancelled],
+        backgroundColor: ['#28a745', '#dc3545'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((context.raw / total) * 100).toFixed(1);
+              return `${context.label}: ${context.raw} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Channel Chart (Bar)
   const channelData = {};
   const channels = ['ONLY DELIVERY', 'ONLINE-PICK-UP'];
   
@@ -1787,35 +1924,48 @@ function updateCharts() {
     const cancelled = channelOrders.filter(o => o.status === 'cancelled').length;
     const total = channelOrders.length;
     const rate = total ? (cancelled / total) * 100 : 0;
-    channelData[channel] = rate;
+    channelData[channel] = { cancelled, total, rate };
   });
   
   if (channelChart) channelChart.destroy();
   
   const channelCtx = document.getElementById('channelChart').getContext('2d');
   channelChart = new Chart(channelCtx, {
-    type: 'pie',
+    type: 'bar',
     data: {
       labels: Object.keys(channelData),
       datasets: [{
-        data: Object.values(channelData),
-        backgroundColor: [
-          '#ff6b35', '#f7931e'
-        ],
-        borderWidth: 1
+        label: 'Cancellation Rate (%)',
+        data: Object.values(channelData).map(d => d.rate),
+        backgroundColor: ['#ff6b35', '#f7931e'],
+        borderColor: ['#e55a2b', '#e5821e'],
+        borderWidth: 2
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      },
       plugins: {
-        legend: {
-          position: 'right'
-        },
         tooltip: {
           callbacks: {
             label: function(context) {
-              return `${context.label}: ${context.raw.toFixed(1)}%`;
+              const data = channelData[context.label];
+              return [
+                `Rate: ${context.raw.toFixed(1)}%`,
+                `Cancelled: ${data.cancelled}`,
+                `Total: ${data.total}`
+              ];
             }
           }
         }
@@ -1823,7 +1973,7 @@ function updateCharts() {
     }
   });
   
-  // Location Chart
+  // Location Chart (Horizontal Bar)
   const locationData = {};
   const locations = ['Barsha', 'Electra', 'Hamdan', 'Khalydiha', 'Mouroor', 'Shabiha', 'Satwa', 'ALRIGGA', 'SHARJA'];
   
@@ -1844,9 +1994,76 @@ function updateCharts() {
         label: 'Cancelled Orders',
         data: Object.values(locationData),
         backgroundColor: '#ff6b35',
-        borderColor: '#f7931e',
-        borderWidth: 1
+        borderColor: '#e55a2b',
+        borderWidth: 2
       }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+  
+  // Trend Chart (Line - Last 7 Days)
+  const trendData = [];
+  const labels = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayOrders = orders.filter(o => o.orderDate === dateStr);
+    
+    labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    trendData.push({
+      total: dayOrders.length,
+      cancelled: dayOrders.filter(o => o.status === 'cancelled').length,
+      delivered: dayOrders.filter(o => o.status === 'delivered').length
+    });
+  }
+  
+  if (trendChart) trendChart.destroy();
+  
+  const trendCtx = document.getElementById('trendChart').getContext('2d');
+  trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Total Orders',
+          data: trendData.map(d => d.total),
+          borderColor: '#17a2b8',
+          backgroundColor: 'rgba(23, 162, 184, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Delivered',
+          data: trendData.map(d => d.delivered),
+          borderColor: '#28a745',
+          backgroundColor: 'rgba(40, 167, 69, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Cancelled',
+          data: trendData.map(d => d.cancelled),
+          borderColor: '#dc3545',
+          backgroundColor: 'rgba(220, 53, 69, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -1857,6 +2074,11 @@ function updateCharts() {
           ticks: {
             precision: 0
           }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom'
         }
       }
     }
@@ -1978,7 +2200,6 @@ function deleteOrder(index) {
     generatePivotTable();
     updateCharts();
     generateReasonsTable('all');
-    updatePenaltySummary();
     showNotification('Order deleted successfully!');
   }
 }
@@ -2084,7 +2305,6 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
   generatePivotTable();
   updateCharts();
   generateReasonsTable('all');
-  updatePenaltySummary();
   closeEditModal();
   showNotification('Order updated successfully!');
 });
@@ -2159,9 +2379,7 @@ function exportToPDF() {
     const delivered = orders.filter(o => o.status === 'delivered').length;
     const rate = total ? ((cancelled/total)*100).toFixed(1) : 0;
     const unjustified = orders.filter(o => o.reasonStatus === 'غير مقبول ❌').length;
-    const penaltyAmount = orders
-      .filter(o => o.reasonStatus === 'غير مقبول ❌')
-      .reduce((sum, o) => sum + o.total, 0);
+    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
     
     doc.text(`Total Orders: ${total}`, 30, yPosition);
     yPosition += 7;
@@ -2173,7 +2391,7 @@ function exportToPDF() {
     yPosition += 7;
     doc.text(`Unjustified Cancellations: ${unjustified}`, 30, yPosition);
     yPosition += 7;
-    doc.text(`Total Penalty Amount: AED ${penaltyAmount.toFixed(2)}`, 30, yPosition);
+    doc.text(`Total Revenue: AED ${totalRevenue.toFixed(2)}`, 30, yPosition);
     
     // Add orders table
     yPosition += 15;
