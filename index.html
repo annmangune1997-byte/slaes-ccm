@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Cancelled Order Management System - CRISPY CHICKEN</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -153,6 +152,12 @@
       box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
     }
 
+    .datetime-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
     .btn {
       padding: 12px 25px;
       border: none;
@@ -210,6 +215,17 @@
       background: #138496;
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: var(--white);
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
     }
 
     .dashboard {
@@ -537,6 +553,13 @@
       padding-left: 40px;
     }
 
+    .datetime-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ff6b35' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12 16 14'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 10px center;
+      padding-left: 40px;
+    }
+
     .custom-reason {
       display: none;
       margin-top: 15px;
@@ -721,6 +744,10 @@
       .pivot-table table {
         font-size: 0.8rem;
       }
+      
+      .datetime-group {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -801,6 +828,16 @@
           <label for="count">Number of Orders</label>
           <input type="number" id="count" min="1" value="1" required>
         </div>
+        <div class="form-group datetime-group">
+          <div>
+            <label for="orderDate">Order Date</label>
+            <input type="date" id="orderDate" class="datetime-input" required>
+          </div>
+          <div>
+            <label for="orderTime">Order Time</label>
+            <input type="time" id="orderTime" class="datetime-input" required>
+          </div>
+        </div>
         <div class="form-group" id="reasonGroup" style="display: none;">
           <label for="reason">Reason for Cancellation</label>
           <select id="reason" class="reason-select" onchange="toggleCustomReason()">
@@ -828,10 +865,16 @@
           </select>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-save"></i>
-        Add Order
-      </button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i>
+          Add Order
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="setDateTimeNow()">
+          <i class="fas fa-clock"></i>
+          Use Current Date & Time
+        </button>
+      </div>
     </form>
   </div>
 
@@ -1069,9 +1112,10 @@
             <th>Status</th>
             <th>Order Price</th>
             <th>Number of Orders</th>
+            <th>Order Date</th>
+            <th>Order Time</th>
             <th>Reason for Cancellation</th>
             <th>Reason Status</th>
-            <th>Date</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -1172,6 +1216,16 @@
           <label for="editCount">Number of Orders</label>
           <input type="number" id="editCount" min="1" required>
         </div>
+        <div class="form-group datetime-group">
+          <div>
+            <label for="editOrderDate">Order Date</label>
+            <input type="date" id="editOrderDate" class="datetime-input" required>
+          </div>
+          <div>
+            <label for="editOrderTime">Order Time</label>
+            <input type="time" id="editOrderTime" class="datetime-input" required>
+          </div>
+        </div>
         <div class="form-group" id="editReasonGroup" style="display: none;">
           <label for="editReason">Reason for Cancellation</label>
           <select id="editReason" class="reason-select" onchange="toggleCustomReasonEdit()">
@@ -1198,10 +1252,16 @@
           </select>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-save"></i>
-        Save Changes
-      </button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i>
+          Save Changes
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="setEditDateTimeNow()">
+          <i class="fas fa-clock"></i>
+          Use Current Date & Time
+        </button>
+      </div>
     </form>
   </div>
 </div>
@@ -1210,8 +1270,39 @@
 let orders = JSON.parse(localStorage.getItem('orders') || '[]');
 let channelChart, locationChart;
 
-// Set today's date as default
+// Set today's date as default for report
 document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+
+// Set current date and time on page load
+window.addEventListener('DOMContentLoaded', function() {
+  setDateTimeNow();
+  renderTable();
+  updateDashboard();
+  generatePivotTable();
+  updateCharts();
+  generateReasonsTable('all');
+  updatePenaltySummary();
+});
+
+// Function to set current date and time
+function setDateTimeNow() {
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toTimeString().slice(0, 5);
+  
+  document.getElementById('orderDate').value = date;
+  document.getElementById('orderTime').value = time;
+}
+
+// Function to set current date and time in edit modal
+function setEditDateTimeNow() {
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toTimeString().slice(0, 5);
+  
+  document.getElementById('editOrderDate').value = date;
+  document.getElementById('editOrderTime').value = time;
+}
 
 // Toggle reason status visibility based on order status
 function toggleReasonStatus() {
@@ -1300,7 +1391,7 @@ function generateWhatsAppReport() {
   // Filter orders for the selected date
   const selectedDate = new Date(reportDate);
   const filteredOrders = orders.filter(order => {
-    const orderDate = new Date(order.date.split(',')[0]);
+    const orderDate = new Date(order.orderDate);
     return orderDate.toDateString() === selectedDate.toDateString() && order.status === 'cancelled';
   });
   
@@ -1425,12 +1516,14 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
   const status = document.getElementById('status').value;
   const price = parseFloat(document.getElementById('price').value) || 0;
   const count = parseInt(document.getElementById('count').value) || 1;
+  const orderDate = document.getElementById('orderDate').value;
+  const orderTime = document.getElementById('orderTime').value;
   const reason = document.getElementById('reason').value;
   const customReason = document.getElementById('customReason').value.trim();
   const reasonStatus = document.getElementById('reasonStatus').value;
   
   // Validate required fields
-  if (!channel || !orderNumber || !agentName || !branch || !status) {
+  if (!channel || !orderNumber || !agentName || !branch || !status || !orderDate || !orderTime) {
     showNotification('Please fill in all required fields', 'error');
     return;
   }
@@ -1465,10 +1558,11 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
     price,
     count,
     total: price * count,
+    orderDate,
+    orderTime,
     reason: finalReason,
     reasonCategory,
-    reasonStatus: status === 'cancelled' ? reasonStatus : '',
-    date: new Date().toLocaleString()
+    reasonStatus: status === 'cancelled' ? reasonStatus : ''
   };
   
   orders.push(newOrder);
@@ -1479,6 +1573,9 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
   document.getElementById('customReasonGroup').classList.remove('show');
   document.getElementById('reasonGroup').style.display = 'none';
   document.getElementById('reasonStatusGroup').style.display = 'none';
+  
+  // Set current date and time again
+  setDateTimeNow();
   
   // Update all displays
   renderTable();
@@ -1515,9 +1612,18 @@ function renderTable() {
       (order.reason && order.reason.toLowerCase().includes(filterSearch)) ||
       (order.reasonCategory && order.reasonCategory.toLowerCase().includes(filterSearch)) ||
       (order.orderNumber && order.orderNumber.toLowerCase().includes(filterSearch)) ||
-      (order.agentName && order.agentName.toLowerCase().includes(filterSearch));
+      (order.agentName && order.agentName.toLowerCase().includes(filterSearch)) ||
+      (order.orderDate && order.orderDate.includes(filterSearch)) ||
+      (order.orderTime && order.orderTime.includes(filterSearch));
       
     return matchChannel && matchBranch && matchAgent && matchStatus && matchReasonStatus && matchSearch;
+  });
+  
+  // Sort orders by date and time (newest first)
+  filteredOrders.sort((a, b) => {
+    const dateA = new Date(`${a.orderDate} ${a.orderTime}`);
+    const dateB = new Date(`${b.orderDate} ${b.orderTime}`);
+    return dateB - dateA;
   });
   
   filteredOrders.forEach((order, index) => {
@@ -1560,12 +1666,13 @@ function renderTable() {
         </td>
         <td>AED ${order.price.toFixed(2)}</td>
         <td>${order.count}</td>
+        <td>${order.orderDate}</td>
+        <td>${order.orderTime}</td>
         <td>
           ${reasonBadge}
           ${order.reason ? `<br>${order.reason}` : ''}
         </td>
         <td>${statusBadge}</td>
-        <td>${order.date}</td>
         <td>
           <div class="actions">
             <button class="btn btn-info" onclick="editOrder(${actualIndex})">
@@ -1766,11 +1873,11 @@ function generateReasonsTable(timeFilter) {
   if (timeFilter === 'week') {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    filteredOrders = orders.filter(o => new Date(o.date) >= oneWeekAgo);
+    filteredOrders = orders.filter(o => new Date(`${o.orderDate} ${o.orderTime}`) >= oneWeekAgo);
   } else if (timeFilter === 'month') {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    filteredOrders = orders.filter(o => new Date(o.date) >= oneMonthAgo);
+    filteredOrders = orders.filter(o => new Date(`${o.orderDate} ${o.orderTime}`) >= oneMonthAgo);
   }
   
   const unacceptableOrders = filteredOrders.filter(o => o.reasonStatus === 'غير مقبول ❌');
@@ -1888,6 +1995,8 @@ function editOrder(index) {
   document.getElementById('editStatus').value = order.status;
   document.getElementById('editPrice').value = order.price;
   document.getElementById('editCount').value = order.count;
+  document.getElementById('editOrderDate').value = order.orderDate;
+  document.getElementById('editOrderTime').value = order.orderTime;
   
   // Set reason and custom reason
   if (order.status === 'cancelled') {
@@ -1920,12 +2029,14 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
   const status = document.getElementById('editStatus').value;
   const price = parseFloat(document.getElementById('editPrice').value) || 0;
   const count = parseInt(document.getElementById('editCount').value) || 1;
+  const orderDate = document.getElementById('editOrderDate').value;
+  const orderTime = document.getElementById('editOrderTime').value;
   const reason = document.getElementById('editReason').value;
   const customReason = document.getElementById('editCustomReason').value.trim();
   const reasonStatus = document.getElementById('editReasonStatus').value;
   
   // Validate required fields
-  if (!channel || !orderNumber || !agentName || !branch || !status) {
+  if (!channel || !orderNumber || !agentName || !branch || !status || !orderDate || !orderTime) {
     showNotification('Please fill in all required fields', 'error');
     return;
   }
@@ -1960,6 +2071,8 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     price,
     count,
     total: price * count,
+    orderDate,
+    orderTime,
     reason: finalReason,
     reasonCategory,
     reasonStatus: status === 'cancelled' ? reasonStatus : ''
@@ -1995,119 +2108,140 @@ function resetFilters() {
 
 // Export to CSV
 function exportToCSV() {
-  let csv = 'Brand,Order Number,Channel,Agent Name,Location,Status,Order Price,Number of Orders,Reason Category,Reason,Reason Status,Total,Date\n';
-  orders.forEach(order => {
-    csv += `${order.brand},${order.orderNumber},${order.channel},${order.agentName},${order.branch},${order.status},${order.price},${order.count},"${order.reasonCategory || ''}","${order.reason || ''}","${order.reasonStatus || ''}",${order.total},"${order.date}"\n`;
-  });
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
-  link.click();
-  
-  showNotification('CSV exported successfully!');
+  try {
+    let csv = 'Brand,Order Number,Channel,Agent Name,Location,Status,Order Price,Number of Orders,Order Date,Order Time,Reason Category,Reason,Reason Status,Total\n';
+    orders.forEach(order => {
+      csv += `${order.brand},${order.orderNumber},${order.channel},${order.agentName},${order.branch},${order.status},${order.price},${order.count},${order.orderDate},${order.orderTime},"${order.reasonCategory || ''}","${order.reason || ''}","${order.reasonStatus || ''}",${order.total}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    showNotification('CSV exported successfully!');
+  } catch (error) {
+    showNotification('Failed to export CSV', 'error');
+    console.error('CSV export error:', error);
+  }
 }
 
 // Export to PDF
 function exportToPDF() {
-  showNotification('Generating PDF report...', 'info');
-  
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  // Add title
-  doc.setFontSize(20);
-  doc.text('CRISPY CHICKEN - Orders Report', 105, 20, { align: 'center' });
-  
-  // Add date
-  doc.setFontSize(12);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
-  
-  // Add summary
-  let yPosition = 50;
-  doc.setFontSize(14);
-  doc.text('Summary:', 20, yPosition);
-  yPosition += 10;
-  
-  doc.setFontSize(11);
-  const total = orders.length;
-  const cancelled = orders.filter(o => o.status === 'cancelled').length;
-  const delivered = orders.filter(o => o.status === 'delivered').length;
-  const rate = total ? ((cancelled/total)*100).toFixed(1) : 0;
-  const unjustified = orders.filter(o => o.reasonStatus === 'غير مقبول ❌').length;
-  const penaltyAmount = orders
-    .filter(o => o.reasonStatus === 'غير مقبول ❌')
-    .reduce((sum, o) => sum + o.total, 0);
-  
-  doc.text(`Total Orders: ${total}`, 30, yPosition);
-  yPosition += 7;
-  doc.text(`Cancelled Orders: ${cancelled}`, 30, yPosition);
-  yPosition += 7;
-  doc.text(`Delivered Orders: ${delivered}`, 30, yPosition);
-  yPosition += 7;
-  doc.text(`Cancellation Rate: ${rate}%`, 30, yPosition);
-  yPosition += 7;
-  doc.text(`Unjustified Cancellations: ${unjustified}`, 30, yPosition);
-  yPosition += 7;
-  doc.text(`Total Penalty Amount: AED ${penaltyAmount.toFixed(2)}`, 30, yPosition);
-  
-  // Add orders table
-  yPosition += 15;
-  doc.setFontSize(14);
-  doc.text('Orders List:', 20, yPosition);
-  yPosition += 10;
-  
-  doc.setFontSize(10);
-  const headers = ['Order #', 'Channel', 'Agent', 'Location', 'Status', 'Price', 'Date'];
-  let xPosition = 20;
-  headers.forEach(header => {
-    doc.text(header, xPosition, yPosition);
-    xPosition += 25;
-  });
-  yPosition += 7;
-  
-  orders.forEach(order => {
-    if (yPosition > 270) {
-      doc.addPage();
-      yPosition = 20;
-    }
+  try {
+    showNotification('Generating PDF report...', 'info');
     
-    xPosition = 20;
-    doc.text(order.orderNumber.substring(0, 10), xPosition, yPosition);
-    xPosition += 25;
-    doc.text(order.channel.substring(0, 10), xPosition, yPosition);
-    xPosition += 25;
-    doc.text(order.agentName, xPosition, yPosition);
-    xPosition += 25;
-    doc.text(order.branch.substring(0, 10), xPosition, yPosition);
-    xPosition += 25;
-    doc.text(order.status, xPosition, yPosition);
-    xPosition += 25;
-    doc.text(`AED${order.price}`, xPosition, yPosition);
-    xPosition += 25;
-    doc.text(order.date.split(',')[0], xPosition, yPosition);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     
-    yPosition += 6;
-  });
-  
-  doc.save(`orders_report_${new Date().toISOString().split('T')[0]}.pdf`);
-  showNotification('PDF exported successfully!');
+    // Add title
+    doc.setFontSize(20);
+    doc.text('CRISPY CHICKEN - Orders Report', 105, 20, { align: 'center' });
+    
+    // Add date
+    doc.setFontSize(12);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
+    
+    // Add summary
+    let yPosition = 50;
+    doc.setFontSize(14);
+    doc.text('Summary:', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(11);
+    const total = orders.length;
+    const cancelled = orders.filter(o => o.status === 'cancelled').length;
+    const delivered = orders.filter(o => o.status === 'delivered').length;
+    const rate = total ? ((cancelled/total)*100).toFixed(1) : 0;
+    const unjustified = orders.filter(o => o.reasonStatus === 'غير مقبول ❌').length;
+    const penaltyAmount = orders
+      .filter(o => o.reasonStatus === 'غير مقبول ❌')
+      .reduce((sum, o) => sum + o.total, 0);
+    
+    doc.text(`Total Orders: ${total}`, 30, yPosition);
+    yPosition += 7;
+    doc.text(`Cancelled Orders: ${cancelled}`, 30, yPosition);
+    yPosition += 7;
+    doc.text(`Delivered Orders: ${delivered}`, 30, yPosition);
+    yPosition += 7;
+    doc.text(`Cancellation Rate: ${rate}%`, 30, yPosition);
+    yPosition += 7;
+    doc.text(`Unjustified Cancellations: ${unjustified}`, 30, yPosition);
+    yPosition += 7;
+    doc.text(`Total Penalty Amount: AED ${penaltyAmount.toFixed(2)}`, 30, yPosition);
+    
+    // Add orders table
+    yPosition += 15;
+    doc.setFontSize(14);
+    doc.text('Orders List:', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(10);
+    const headers = ['Order #', 'Channel', 'Agent', 'Location', 'Status', 'Price', 'Date', 'Time'];
+    let xPosition = 20;
+    headers.forEach(header => {
+      doc.text(header, xPosition, yPosition);
+      xPosition += 22;
+    });
+    yPosition += 7;
+    
+    orders.forEach(order => {
+      if (yPosition > 270) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      xPosition = 20;
+      doc.text(order.orderNumber.substring(0, 8), xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.channel.substring(0, 8), xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.agentName, xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.branch.substring(0, 8), xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.status, xPosition, yPosition);
+      xPosition += 22;
+      doc.text(`AED${order.price}`, xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.orderDate, xPosition, yPosition);
+      xPosition += 22;
+      doc.text(order.orderTime, xPosition, yPosition);
+      
+      yPosition += 6;
+    });
+    
+    doc.save(`orders_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    showNotification('PDF exported successfully!');
+  } catch (error) {
+    showNotification('Failed to export PDF', 'error');
+    console.error('PDF export error:', error);
+  }
 }
 
 // Export to JSON
 function exportToJSON() {
-  const dataStr = JSON.stringify(orders, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-  
-  const exportFileDefaultName = `orders_${new Date().toISOString().split('T')[0]}.json`;
-  
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', exportFileDefaultName);
-  linkElement.click();
-  
-  showNotification('JSON exported successfully!');
+  try {
+    const dataStr = JSON.stringify(orders, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `orders_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showNotification('JSON exported successfully!');
+  } catch (error) {
+    showNotification('Failed to export JSON', 'error');
+    console.error('JSON export error:', error);
+  }
 }
 
 // Show notification
@@ -2125,16 +2259,6 @@ function showNotification(message, type = 'success') {
     notification.classList.remove('show');
   }, 3000);
 }
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-  renderTable();
-  updateDashboard();
-  generatePivotTable();
-  updateCharts();
-  generateReasonsTable('all');
-  updatePenaltySummary();
-});
 </script>
 </body>
 </html>
