@@ -16,10 +16,20 @@
   th,td{padding:8px;border-bottom:1px solid #e6edf3;text-align:left}
   th{background:#f1f5f9}
   .muted{color:#64748b;font-size:13px}
-  .controls{display:flex;gap:8px;align-items:center}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   select,button{padding:8px 10px;border-radius:8px;border:1px solid #cbd5e1;background:white}
   canvas{width:100%!important;height:320px!important}
-  @media (max-width:900px){.kpi{grid-column:span 6}.full{grid-column:span 12}}
+  .red {color: red; font-weight:700}
+  .green {color: green; font-weight:700}
+  .add-data-form {margin-top:20px; padding:15px; background:#f8fafc; border-radius:8px}
+  .form-row {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+  .form-row input, .form-row select {padding:8px; border-radius:6px; border:1px solid #cbd5e1}
+  .notification {position:fixed; top:20px; right:20px; padding:12px 20px; background:#10b981; color:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:none; z-index:1000}
+  .stats-grid {display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+  .stat-card {background:#f1f5f9;padding:10px;border-radius:6px;text-align:center}
+  .stat-value {font-weight:700;font-size:16px}
+  .stat-label {font-size:12px;color:#64748b}
+  @media (max-width:900px){.kpi{grid-column:span 6}.full{grid-column:span 12}.stats-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -30,10 +40,11 @@
     <label class="muted">Branch</label>
     <select id="branchSelect"></select>
     <label class="muted">Channel</label>
-    <select id="channelSelect"><option value="all">All</option><option>Self Delivery</option><option>Online Wab</option></select>
+    <select id="channelSelect"><option value="all">All</option><option>Self Delivery</option><option>Online Web</option></select>
     <label class="muted">Metric</label>
     <select id="metricSelect"><option value="sales">Sales</option><option value="orders">Orders</option></select>
     <button id="exportCsv">Export CSV</button>
+    <button id="resetData">Reset Data</button>
   </div>
 
   <div class="grid" style="margin-bottom:12px">
@@ -42,11 +53,60 @@
     <div class="card kpi"><div class="muted">Total Orders 2024</div><div id="ord24" style="font-weight:700;font-size:18px"></div></div>
     <div class="card kpi"><div class="muted">Total Orders 2025</div><div id="ord25" style="font-weight:700;font-size:18px"></div></div>
 
-    <div class="card full"><canvas id="trendChart"></canvas></div>
-    <div class="card full"><canvas id="stackChart"></canvas></div>
-    <div class="card full"><h3 style="margin-top:0">Branch × Channel Monthly Table</h3><div style="overflow:auto"><table id="dataTable"><thead></thead><tbody></tbody></table></div></div>
+    <div class="card full">
+      <h3 style="margin-top:0">Trend Analysis</h3>
+      <canvas id="trendChart"></canvas>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="salesGrowth">0%</div>
+          <div class="stat-label">Sales Growth</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="orderGrowth">0%</div>
+          <div class="stat-label">Order Growth</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avgAOV24">0</div>
+          <div class="stat-label">Avg AOV 2024</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avgAOV25">0</div>
+          <div class="stat-label">Avg AOV 2025</div>
+        </div>
+      </div>
+    </div>
+    <div class="card full">
+      <h3 style="margin-top:0">Channel Comparison (2025)</h3>
+      <canvas id="stackChart"></canvas>
+    </div>
+    <div class="card full">
+      <h3 style="margin-top:0">Branch × Channel Monthly Table</h3>
+      <div style="overflow:auto"><table id="dataTable"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="add-data-form">
+    <h3>Add New Data</h3>
+    <div class="form-row">
+      <input type="text" id="newMonth" placeholder="Month (e.g. Jan)" required>
+      <input type="text" id="newBranch" placeholder="Branch" required>
+      <select id="newChannel" required>
+        <option value="">Select Channel</option>
+        <option>Self Delivery</option>
+        <option>Online Web</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input type="number" id="newS24" placeholder="Sales 2024" required>
+      <input type="number" id="newS25" placeholder="Sales 2025" required>
+      <input type="number" id="newO24" placeholder="Orders 2024" required>
+      <input type="number" id="newO25" placeholder="Orders 2025" required>
+    </div>
+    <button id="addDataBtn">Add Data</button>
   </div>
 </div>
+
+<div id="notification" class="notification">Data added successfully!</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
@@ -65,19 +125,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Hamdan St',channel:'Self Delivery',s24:122430,s25:103567,o24:2716,o25:2165},
 {m:11,month:'Nov',branch:'Hamdan St',channel:'Self Delivery',s24:122157,s25:0,o24:2835,o25:0},
 {m:12,month:'Dec',branch:'Hamdan St',channel:'Self Delivery',s24:134030,s25:0,o24:2740,o25:0},
-// Hamdan St — Online Wab
-{m:1,month:'Jan',branch:'Hamdan St',channel:'Online Wab',s24:39204,s25:25546,o24:771,o25:569},
-{m:2,month:'Feb',branch:'Hamdan St',channel:'Online Wab',s24:33373,s25:28689,o24:661,o25:644},
-{m:3,month:'Mar',branch:'Hamdan St',channel:'Online Wab',s24:29535,s25:23967,o24:615,o25:493},
-{m:4,month:'Apr',branch:'Hamdan St',channel:'Online Wab',s24:33433,s25:35261,o24:674,o25:750},
-{m:5,month:'May',branch:'Hamdan St',channel:'Online Wab',s24:35454,s25:39090,o24:733,o25:905},
-{m:6,month:'Jun',branch:'Hamdan St',channel:'Online Wab',s24:40787,s25:38061,o24:825,o25:800},
-{m:7,month:'Jul',branch:'Hamdan St',channel:'Online Wab',s24:39832,s25:41582,o24:876,o25:1007},
-{m:8,month:'Aug',branch:'Hamdan St',channel:'Online Wab',s24:32362,s25:34835,o24:756,o25:771},
-{m:9,month:'Sep',branch:'Hamdan St',channel:'Online Wab',s24:27887,s25:41146,o24:547,o25:889},
-{m:10,month:'Oct',branch:'Hamdan St',channel:'Online Wab',s24:25924,s25:32395,o24:590,o25:688},
-{m:11,month:'Nov',branch:'Hamdan St',channel:'Online Wab',s24:20000,s25:0,o24:450,o25:0},
-{m:12,month:'Dec',branch:'Hamdan St',channel:'Online Wab',s24:24052,s25:0,o24:494,o25:0},
+// Hamdan St — Online Web
+{m:1,month:'Jan',branch:'Hamdan St',channel:'Online Web',s24:39204,s25:25546,o24:771,o25:569},
+{m:2,month:'Feb',branch:'Hamdan St',channel:'Online Web',s24:33373,s25:28689,o24:661,o25:644},
+{m:3,month:'Mar',branch:'Hamdan St',channel:'Online Web',s24:29535,s25:23967,o24:615,o25:493},
+{m:4,month:'Apr',branch:'Hamdan St',channel:'Online Web',s24:33433,s25:35261,o24:674,o25:750},
+{m:5,month:'May',branch:'Hamdan St',channel:'Online Web',s24:35454,s25:39090,o24:733,o25:905},
+{m:6,month:'Jun',branch:'Hamdan St',channel:'Online Web',s24:40787,s25:38061,o24:825,o25:800},
+{m:7,month:'Jul',branch:'Hamdan St',channel:'Online Web',s24:39832,s25:41582,o24:876,o25:1007},
+{m:8,month:'Aug',branch:'Hamdan St',channel:'Online Web',s24:32362,s25:34835,o24:756,o25:771},
+{m:9,month:'Sep',branch:'Hamdan St',channel:'Online Web',s24:27887,s25:41146,o24:547,o25:889},
+{m:10,month:'Oct',branch:'Hamdan St',channel:'Online Web',s24:25924,s25:32395,o24:590,o25:688},
+{m:11,month:'Nov',branch:'Hamdan St',channel:'Online Web',s24:20000,s25:0,o24:450,o25:0},
+{m:12,month:'Dec',branch:'Hamdan St',channel:'Online Web',s24:24052,s25:0,o24:494,o25:0},
 
 // Al Khalidiyah — Self Delivery
 {m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Self Delivery',s24:73203,s25:60360,o24:1444,o25:1241},
@@ -92,19 +152,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60725,s25:61294,o24:1298,o25:1164},
 {m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60461,s25:0,o24:1217,o25:0},
 {m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Self Delivery',s24:85037,s25:0,o24:1225,o25:0},
-// Al Khalidiyah — Online Wab
-{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Online Wab',s24:21135,s25:13749,o24:412,o25:292},
-{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Online Wab',s24:21217,s25:14662,o24:417,o25:305},
-{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Online Wab',s24:16169,s25:12644,o24:321,o25:198},
-{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Online Wab',s24:20903,s25:16370,o24:390,o25:312},
-{m:5,month:'May',branch:'Al Khalidiyah',channel:'Online Wab',s24:19685,s25:20318,o24:366,o25:439},
-{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Online Wab',s24:21759,s25:19102,o24:399,o25:377},
-{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Online Wab',s24:22254,s25:17766,o24:447,o25:426},
-{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Online Wab',s24:18936,s25:17361,o24:388,o25:365},
-{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Online Wab',s24:14826,s25:16495,o24:281,o25:316},
-{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Online Wab',s24:16403,s25:17815,o24:371,o25:354},
-{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Online Wab',s24:11694,s25:0,o24:253,o25:0},
-{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Online Wab',s24:12724,s25:0,o24:245,o25:0},
+// Al Khalidiyah — Online Web
+{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Online Web',s24:21135,s25:13749,o24:412,o25:292},
+{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Online Web',s24:21217,s25:14662,o24:417,o25:305},
+{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Online Web',s24:16169,s25:12644,o24:321,o25:198},
+{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Online Web',s24:20903,s25:16370,o24:390,o25:312},
+{m:5,month:'May',branch:'Al Khalidiyah',channel:'Online Web',s24:19685,s25:20318,o24:366,o25:439},
+{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Online Web',s24:21759,s25:19102,o24:399,o25:377},
+{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Online Web',s24:22254,s25:17766,o24:447,o25:426},
+{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Online Web',s24:18936,s25:17361,o24:388,o25:365},
+{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Online Web',s24:14826,s25:16495,o24:281,o25:316},
+{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Online Web',s24:16403,s25:17815,o24:371,o25:354},
+{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Online Web',s24:11694,s25:0,o24:253,o25:0},
+{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Online Web',s24:12724,s25:0,o24:245,o25:0},
 
 // Shabiya 11 — Self Delivery
 {m:1,month:'Jan',branch:'Shabiya 11',channel:'Self Delivery',s24:53600,s25:52778,o24:1184,o25:1201},
@@ -119,19 +179,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Shabiya 11',channel:'Self Delivery',s24:56993,s25:57956,o24:1324,o25:1225},
 {m:11,month:'Nov',branch:'Shabiya 11',channel:'Self Delivery',s24:59511,s25:0,o24:1272,o25:0},
 {m:12,month:'Dec',branch:'Shabiya 11',channel:'Self Delivery',s24:56257,s25:0,o24:1152,o25:0},
-// Shabiya 11 — Online Wab
-{m:1,month:'Jan',branch:'Shabiya 11',channel:'Online Wab',s24:11054,s25:7398,o24:244,o25:177},
-{m:2,month:'Feb',branch:'Shabiya 11',channel:'Online Wab',s24:11743,s25:6340,o24:222,o25:143},
-{m:3,month:'Mar',branch:'Shabiya 11',channel:'Online Wab',s24:8011,s25:3282,o24:179,o25:74},
-{m:4,month:'Apr',branch:'Shabiya 11',channel:'Online Wab',s24:7720,s25:12005,o24:163,o25:245},
-{m:5,month:'May',branch:'Shabiya 11',channel:'Online Wab',s24:10015,s25:13045,o24:204,o25:308},
-{m:6,month:'Jun',branch:'Shabiya 11',channel:'Online Wab',s24:11933,s25:15350,o24:238,o25:306},
-{m:7,month:'Jul',branch:'Shabiya 11',channel:'Online Wab',s24:9793,s25:16910,o24:223,o25:404},
-{m:8,month:'Aug',branch:'Shabiya 11',channel:'Online Wab',s24:11299,s25:12568,o24:237,o25:260},
-{m:9,month:'Sep',branch:'Shabiya 11',channel:'Online Wab',s24:8747,s25:10420,o24:179,o25:216},
-{m:10,month:'Oct',branch:'Shabiya 11',channel:'Online Wab',s24:10253,s25:11708,o24:257,o25:254},
-{m:11,month:'Nov',branch:'Shabiya 11',channel:'Online Wab',s24:10046,s25:0,o24:219,o25:0},
-{m:12,month:'Dec',branch:'Shabiya 11',channel:'Online Wab',s24:7951,s25:0,o24:151,o25:0},
+// Shabiya 11 — Online Web
+{m:1,month:'Jan',branch:'Shabiya 11',channel:'Online Web',s24:11054,s25:7398,o24:244,o25:177},
+{m:2,month:'Feb',branch:'Shabiya 11',channel:'Online Web',s24:11743,s25:6340,o24:222,o25:143},
+{m:3,month:'Mar',branch:'Shabiya 11',channel:'Online Web',s24:8011,s25:3282,o24:179,o25:74},
+{m:4,month:'Apr',branch:'Shabiya 11',channel:'Online Web',s24:7720,s25:12005,o24:163,o25:245},
+{m:5,month:'May',branch:'Shabiya 11',channel:'Online Web',s24:10015,s25:13045,o24:204,o25:308},
+{m:6,month:'Jun',branch:'Shabiya 11',channel:'Online Web',s24:11933,s25:15350,o24:238,o25:306},
+{m:7,month:'Jul',branch:'Shabiya 11',channel:'Online Web',s24:9793,s25:16910,o24:223,o25:404},
+{m:8,month:'Aug',branch:'Shabiya 11',channel:'Online Web',s24:11299,s25:12568,o24:237,o25:260},
+{m:9,month:'Sep',branch:'Shabiya 11',channel:'Online Web',s24:8747,s25:10420,o24:179,o25:216},
+{m:10,month:'Oct',branch:'Shabiya 11',channel:'Online Web',s24:10253,s25:11708,o24:257,o25:254},
+{m:11,month:'Nov',branch:'Shabiya 11',channel:'Online Web',s24:10046,s25:0,o24:219,o25:0},
+{m:12,month:'Dec',branch:'Shabiya 11',channel:'Online Web',s24:7951,s25:0,o24:151,o25:0},
 
 // Muroor — Self Delivery
 {m:1,month:'Jan',branch:'Muroor',channel:'Self Delivery',s24:56696,s25:59749,o24:1140,o25:1255},
@@ -146,19 +206,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Muroor',channel:'Self Delivery',s24:65561,s25:50495,o24:1384,o25:973},
 {m:11,month:'Nov',branch:'Muroor',channel:'Self Delivery',s24:62004,s25:0,o24:1380,o25:0},
 {m:12,month:'Dec',branch:'Muroor',channel:'Self Delivery',s24:63780,s25:0,o24:1231,o25:0},
-// Muroor — Online Wab
-{m:1,month:'Jan',branch:'Muroor',channel:'Online Wab',s24:8231,s25:3352,o24:154,o25:72},
-{m:2,month:'Feb',branch:'Muroor',channel:'Online Wab',s24:11050,s25:3939,o24:199,o25:74},
-{m:3,month:'Mar',branch:'Muroor',channel:'Online Wab',s24:7874,s25:3831,o24:143,o25:67},
-{m:4,month:'Apr',branch:'Muroor',channel:'Online Wab',s24:8167,s25:6103,o24:140,o25:113},
-{m:5,month:'May',branch:'Muroor',channel:'Online Wab',s24:9704,s25:6438,o24:174,o25:131},
-{m:6,month:'Jun',branch:'Muroor',channel:'Online Wab',s24:10966,s25:6600,o24:191,o25:120},
-{m:7,month:'Jul',branch:'Muroor',channel:'Online Wab',s24:9358,s25:6127,o24:176,o25:125},
-{m:8,month:'Aug',branch:'Muroor',channel:'Online Wab',s24:8392,s25:5884,o24:157,o25:116},
-{m:9,month:'Sep',branch:'Muroor',channel:'Online Wab',s24:7504,s25:6668,o24:146,o25:119},
-{m:10,month:'Oct',branch:'Muroor',channel:'Online Wab',s24:5777,s25:5435,o24:146,o25:89},
-{m:11,month:'Nov',branch:'Muroor',channel:'Online Wab',s24:6152,s25:0,o24:116,o25:0},
-{m:12,month:'Dec',branch:'Muroor',channel:'Online Wab',s24:8064,s25:0,o24:119,o25:0},
+// Muroor — Online Web
+{m:1,month:'Jan',branch:'Muroor',channel:'Online Web',s24:8231,s25:3352,o24:154,o25:72},
+{m:2,month:'Feb',branch:'Muroor',channel:'Online Web',s24:11050,s25:3939,o24:199,o25:74},
+{m:3,month:'Mar',branch:'Muroor',channel:'Online Web',s24:7874,s25:3831,o24:143,o25:67},
+{m:4,month:'Apr',branch:'Muroor',channel:'Online Web',s24:8167,s25:6103,o24:140,o25:113},
+{m:5,month:'May',branch:'Muroor',channel:'Online Web',s24:9704,s25:6438,o24:174,o25:131},
+{m:6,month:'Jun',branch:'Muroor',channel:'Online Web',s24:10966,s25:6600,o24:191,o25:120},
+{m:7,month:'Jul',branch:'Muroor',channel:'Online Web',s24:9358,s25:6127,o24:176,o25:125},
+{m:8,month:'Aug',branch:'Muroor',channel:'Online Web',s24:8392,s25:5884,o24:157,o25:116},
+{m:9,month:'Sep',branch:'Muroor',channel:'Online Web',s24:7504,s25:6668,o24:146,o25:119},
+{m:10,month:'Oct',branch:'Muroor',channel:'Online Web',s24:5777,s25:5435,o24:146,o25:89},
+{m:11,month:'Nov',branch:'Muroor',channel:'Online Web',s24:6152,s25:0,o24:116,o25:0},
+{m:12,month:'Dec',branch:'Muroor',channel:'Online Web',s24:8064,s25:0,o24:119,o25:0},
 
 // Electra — all zeros (12 months each channel)
 {m:1,month:'Jan',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
@@ -173,18 +233,18 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
 {m:11,month:'Nov',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
 {m:12,month:'Dec',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:1,month:'Jan',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Electra',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
+{m:1,month:'Jan',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:2,month:'Feb',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:3,month:'Mar',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:4,month:'Apr',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:5,month:'May',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:6,month:'Jun',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:7,month:'Jul',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:8,month:'Aug',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:9,month:'Sep',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:10,month:'Oct',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:11,month:'Nov',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:12,month:'Dec',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
 
 // Al Barsha — Self Delivery
 {m:1,month:'Jan',branch:'Al Barsha',channel:'Self Delivery',s24:30120,s25:55752,o24:802,o25:1726},
@@ -199,19 +259,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Al Barsha',channel:'Self Delivery',s24:55783,s25:44819,o24:1894,o25:850},
 {m:11,month:'Nov',branch:'Al Barsha',channel:'Self Delivery',s24:44274,s25:0,o24:1595,o25:0},
 {m:12,month:'Dec',branch:'Al Barsha',channel:'Self Delivery',s24:48203,s25:0,o24:1424,o25:0},
-// Al Barsha — Online Wab
-{m:1,month:'Jan',branch:'Al Barsha',channel:'Online Wab',s24:19348,s25:8325,o24:365,o25:156},
-{m:2,month:'Feb',branch:'Al Barsha',channel:'Online Wab',s24:16597,s25:8977,o24:304,o25:178},
-{m:3,month:'Mar',branch:'Al Barsha',channel:'Online Wab',s24:14043,s25:4816,o24:243,o25:98},
-{m:4,month:'Apr',branch:'Al Barsha',channel:'Online Wab',s24:12546,s25:9647,o24:221,o25:181},
-{m:5,month:'May',branch:'Al Barsha',channel:'Online Wab',s24:16921,s25:9039,o24:290,o25:176},
-{m:6,month:'Jun',branch:'Al Barsha',channel:'Online Wab',s24:17351,s25:7877,o24:299,o25:161},
-{m:7,month:'Jul',branch:'Al Barsha',channel:'Online Wab',s24:14681,s25:8453,o24:276,o25:173},
-{m:8,month:'Aug',branch:'Al Barsha',channel:'Online Wab',s24:13840,s25:7404,o24:250,o25:159},
-{m:9,month:'Sep',branch:'Al Barsha',channel:'Online Wab',s24:12385,s25:8490,o24:203,o25:167},
-{m:10,month:'Oct',branch:'Al Barsha',channel:'Online Wab',s24:10663,s25:7406,o24:178,o25:122},
-{m:11,month:'Nov',branch:'Al Barsha',channel:'Online Wab',s24:12048,s25:0,o24:214,o25:0},
-{m:12,month:'Dec',branch:'Al Barsha',channel:'Online Wab',s24:9084,s25:0,o24:171,o25:0},
+// Al Barsha — Online Web
+{m:1,month:'Jan',branch:'Al Barsha',channel:'Online Web',s24:19348,s25:8325,o24:365,o25:156},
+{m:2,month:'Feb',branch:'Al Barsha',channel:'Online Web',s24:16597,s25:8977,o24:304,o25:178},
+{m:3,month:'Mar',branch:'Al Barsha',channel:'Online Web',s24:14043,s25:4816,o24:243,o25:98},
+{m:4,month:'Apr',branch:'Al Barsha',channel:'Online Web',s24:12546,s25:9647,o24:221,o25:181},
+{m:5,month:'May',branch:'Al Barsha',channel:'Online Web',s24:16921,s25:9039,o24:290,o25:176},
+{m:6,month:'Jun',branch:'Al Barsha',channel:'Online Web',s24:17351,s25:7877,o24:299,o25:161},
+{m:7,month:'Jul',branch:'Al Barsha',channel:'Online Web',s24:14681,s25:8453,o24:276,o25:173},
+{m:8,month:'Aug',branch:'Al Barsha',channel:'Online Web',s24:13840,s25:7404,o24:250,o25:159},
+{m:9,month:'Sep',branch:'Al Barsha',channel:'Online Web',s24:12385,s25:8490,o24:203,o25:167},
+{m:10,month:'Oct',branch:'Al Barsha',channel:'Online Web',s24:10663,s25:7406,o24:178,o25:122},
+{m:11,month:'Nov',branch:'Al Barsha',channel:'Online Web',s24:12048,s25:0,o24:214,o25:0},
+{m:12,month:'Dec',branch:'Al Barsha',channel:'Online Web',s24:9084,s25:0,o24:171,o25:0},
 
 // Al Satwa — Self Delivery
 {m:1,month:'Jan',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:26849,o24:0,o25:818},
@@ -226,19 +286,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Al Satwa',channel:'Self Delivery',s24:29957,s25:12773,o24:831,o25:293},
 {m:11,month:'Nov',branch:'Al Satwa',channel:'Self Delivery',s24:25687,s25:0,o24:765,o25:0},
 {m:12,month:'Dec',branch:'Al Satwa',channel:'Self Delivery',s24:29521,s25:0,o24:768,o25:0},
-// Al Satwa — Online Wab
-{m:1,month:'Jan',branch:'Al Satwa',channel:'Online Wab',s24:0,s25:7572,o24:0,o25:210},
-{m:2,month:'Feb',branch:'Al Satwa',channel:'Online Wab',s24:0,s25:9979,o24:0,o25:240},
-{m:3,month:'Mar',branch:'Al Satwa',channel:'Online Wab',s24:0,s25:5832,o24:0,o25:134},
-{m:4,month:'Apr',branch:'Al Satwa',channel:'Online Wab',s24:0,s25:11509,o24:0,o25:283},
-{m:5,month:'May',branch:'Al Satwa',channel:'Online Wab',s24:569,s25:13388,o24:15,o25:348},
-{m:6,month:'Jun',branch:'Al Satwa',channel:'Online Wab',s24:6303,s25:13815,o24:148,o25:343},
-{m:7,month:'Jul',branch:'Al Satwa',channel:'Online Wab',s24:9685,s25:18083,o24:234,o25:484},
-{m:8,month:'Aug',branch:'Al Satwa',channel:'Online Wab',s24:11818,s25:14903,o24:299,o25:387},
-{m:9,month:'Sep',branch:'Al Satwa',channel:'Online Wab',s24:8026,s25:15232,o24:177,o25:376},
-{m:10,month:'Oct',branch:'Al Satwa',channel:'Online Wab',s24:9119,s25:11183,o24:225,o25:288},
-{m:11,month:'Nov',branch:'Al Satwa',channel:'Online Wab',s24:8731,s25:0,o24:216,o25:0},
-{m:12,month:'Dec',branch:'Al Satwa',channel:'Online Wab',s24:9441,s25:0,o24:216,o25:0},
+// Al Satwa — Online Web
+{m:1,month:'Jan',branch:'Al Satwa',channel:'Online Web',s24:0,s25:7572,o24:0,o25:210},
+{m:2,month:'Feb',branch:'Al Satwa',channel:'Online Web',s24:0,s25:9979,o24:0,o25:240},
+{m:3,month:'Mar',branch:'Al Satwa',channel:'Online Web',s24:0,s25:5832,o24:0,o25:134},
+{m:4,month:'Apr',branch:'Al Satwa',channel:'Online Web',s24:0,s25:11509,o24:0,o25:283},
+{m:5,month:'May',branch:'Al Satwa',channel:'Online Web',s24:569,s25:13388,o24:15,o25:348},
+{m:6,month:'Jun',branch:'Al Satwa',channel:'Online Web',s24:6303,s25:13815,o24:148,o25:343},
+{m:7,month:'Jul',branch:'Al Satwa',channel:'Online Web',s24:9685,s25:18083,o24:234,o25:484},
+{m:8,month:'Aug',branch:'Al Satwa',channel:'Online Web',s24:11818,s25:14903,o24:299,o25:387},
+{m:9,month:'Sep',branch:'Al Satwa',channel:'Online Web',s24:8026,s25:15232,o24:177,o25:376},
+{m:10,month:'Oct',branch:'Al Satwa',channel:'Online Web',s24:9119,s25:11183,o24:225,o25:288},
+{m:11,month:'Nov',branch:'Al Satwa',channel:'Online Web',s24:8731,s25:0,o24:216,o25:0},
+{m:12,month:'Dec',branch:'Al Satwa',channel:'Online Web',s24:9441,s25:0,o24:216,o25:0},
 
 // Al Rigga — Self Delivery
 {m:1,month:'Jan',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
@@ -253,19 +313,19 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:14634.9,o24:0,o25:332},
 {m:11,month:'Nov',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
 {m:12,month:'Dec',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-// Al Rigga — Online Wab
-{m:1,month:'Jan',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:2076,o24:0,o25:62},
-{m:11,month:'Nov',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Al Rigga',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
+// Al Rigga — Online Web
+{m:1,month:'Jan',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:2,month:'Feb',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:3,month:'Mar',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:4,month:'Apr',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:5,month:'May',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:6,month:'Jun',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:7,month:'Jul',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:8,month:'Aug',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:9,month:'Sep',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:10,month:'Oct',branch:'Al Rigga',channel:'Online Web',s24:0,s25:2076,o24:0,o25:62},
+{m:11,month:'Nov',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:12,month:'Dec',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
 
 // Sharja — all zeros
 {m:1,month:'Jan',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
@@ -280,24 +340,29 @@ const DATA_ROWS = [
 {m:10,month:'Oct',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
 {m:11,month:'Nov',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
 {m:12,month:'Dec',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:1,month:'Jan',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Sharja',channel:'Online Wab',s24:0,s25:0,o24:0,o25:0}
+{m:1,month:'Jan',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:2,month:'Feb',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:3,month:'Mar',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:4,month:'Apr',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:5,month:'May',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:6,month:'Jun',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:7,month:'Jul',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:8,month:'Aug',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:9,month:'Sep',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:10,month:'Oct',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:11,month:'Nov',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:12,month:'Dec',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0}
 ];
 
 // ======= Helper functions =======
-function fmt(n){ return Number(n).toLocaleString(); }
+function fmtCurrency(n){ return Number(n).toLocaleString('en-AE', {style:'currency', currency:'AED'}); }
+function fmtNumber(n){ return Number(n).toLocaleString(); }
 function sum(arr, key){ return arr.reduce((s,x)=>s + (Number(x[key])||0),0); }
 function unique(arr, key){ return [...new Set(arr.map(r=>r[key]))]; }
+function calculateGrowth(current, previous) {
+  if (previous === 0) return current === 0 ? 0 : 100;
+  return ((current - previous) / previous * 100).toFixed(1);
+}
 
 // ======= Build branch select options =======
 const branches = unique(DATA_ROWS,'branch');
@@ -308,9 +373,45 @@ branchSelect.value = 'all';
 // ======= Build table =======
 function buildTable(filterBranch, filterChannel){
   const table = document.getElementById('dataTable');
-  const thead = `<tr><th>Month</th><th>Branch</th><th>Channel</th><th>Sales 2024</th><th>Sales 2025</th><th>Orders 2024</th><th>Orders 2025</th></tr>`;
+  const thead = `
+    <tr>
+      <th>Month</th>
+      <th>Branch</th>
+      <th>Channel</th>
+      <th>Sales 2024</th>
+      <th>Sales 2025</th>
+      <th>Δ Sales</th>
+      <th>Orders 2024</th>
+      <th>Orders 2025</th>
+      <th>Δ Orders</th>
+      <th>AOV 2024</th>
+      <th>AOV 2025</th>
+    </tr>
+  `;
   const rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
-  const tbody = rows.map(r=>`<tr><td>${r.month}</td><td>${r.branch}</td><td>${r.channel}</td><td>${fmt(r.s24)}</td><td>${fmt(r.s25)}</td><td>${fmt(r.o24)}</td><td>${fmt(r.o25)}</td></tr>`).join('');
+  const tbody = rows.map(r=>{
+    const salesDiff = r.s25 - r.s24;
+    const ordersDiff = r.o25 - r.o24;
+    const salesDiffClass = salesDiff > 0 ? 'green' : salesDiff < 0 ? 'red' : '';
+    const ordersDiffClass = ordersDiff > 0 ? 'green' : ordersDiff < 0 ? 'red' : '';
+    const aov24 = r.o24 ? fmtCurrency(r.s24/r.o24) : '-';
+    const aov25 = r.o25 ? fmtCurrency(r.s25/r.o25) : '-';
+    return `
+      <tr>
+        <td>${r.month}</td>
+        <td>${r.branch}</td>
+        <td>${r.channel}</td>
+        <td>${fmtCurrency(r.s24)}</td>
+        <td>${fmtCurrency(r.s25)}</td>
+        <td class="${salesDiffClass}">${salesDiff > 0 ? '+' : ''}${fmtCurrency(salesDiff)}</td>
+        <td>${fmtNumber(r.o24)}</td>
+        <td>${fmtNumber(r.o25)}</td>
+        <td class="${ordersDiffClass}">${ordersDiff > 0 ? '+' : ''}${fmtNumber(ordersDiff)}</td>
+        <td>${aov24}</td>
+        <td>${aov25}</td>
+      </tr>
+    `;
+  }).join('');
   table.querySelector('thead').innerHTML = thead;
   table.querySelector('tbody').innerHTML = tbody;
 }
@@ -322,10 +423,29 @@ function updateKPIs(filterBranch, filterChannel){
   const totalS25 = sum(rows,'s25');
   const totalO24 = sum(rows,'o24');
   const totalO25 = sum(rows,'o25');
-  document.getElementById('tot24').textContent = fmt(totalS24);
-  document.getElementById('tot25').textContent = fmt(totalS25);
-  document.getElementById('ord24').textContent = fmt(totalO24);
-  document.getElementById('ord25').textContent = fmt(totalO25);
+  
+  document.getElementById('tot24').textContent = fmtCurrency(totalS24);
+  document.getElementById('tot25').textContent = fmtCurrency(totalS25);
+  document.getElementById('ord24').textContent = fmtNumber(totalO24);
+  document.getElementById('ord25').textContent = fmtNumber(totalO25);
+  
+  // Calculate growth rates
+  const salesGrowth = calculateGrowth(totalS25, totalS24);
+  const orderGrowth = calculateGrowth(totalO25, totalO24);
+  document.getElementById('salesGrowth').textContent = `${salesGrowth}%`;
+  document.getElementById('orderGrowth').textContent = `${orderGrowth}%`;
+  
+  // Calculate average AOV
+  const avgAOV24 = totalO24 > 0 ? totalS24 / totalO24 : 0;
+  const avgAOV25 = totalO25 > 0 ? totalS25 / totalO25 : 0;
+  document.getElementById('avgAOV24').textContent = fmtCurrency(avgAOV24);
+  document.getElementById('avgAOV25').textContent = fmtCurrency(avgAOV25);
+  
+  // Color code KPIs
+  document.getElementById('tot24').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
+  document.getElementById('tot25').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
+  document.getElementById('ord24').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
+  document.getElementById('ord25').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
 }
 
 // ======= Charts =======
@@ -338,22 +458,121 @@ function renderCharts(filterBranch, filterChannel, metric){
   DATA_ROWS.forEach(r=>{
     if((filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel)){
       const idx = r.m-1;
-      if(metric==='sales'){ monthly24[idx] += Number(r.s24)||0; monthly25[idx] += Number(r.s25)||0; }
-      else { monthly24[idx] += Number(r.o24)||0; monthly25[idx] += Number(r.o25)||0; }
+      if(metric==='sales'){ 
+        monthly24[idx] += Number(r.s24)||0; 
+        monthly25[idx] += Number(r.s25)||0; 
+      } else { 
+        monthly24[idx] += Number(r.o24)||0; 
+        monthly25[idx] += Number(r.o25)||0; 
+      }
     }
   });
 
-  if(trendChart) trendChart.destroy();
+  // Destroy existing charts
+  if (trendChart) trendChart.destroy();
+  if (stackChart) stackChart.destroy();
+  
+  // Trend Chart
   const ctx = document.getElementById('trendChart');
-  trendChart = new Chart(ctx, {type:'line',data:{labels:months,datasets:[{label:metric+ ' 2024',data:monthly24,borderColor:'#3b82f6',tension:0.3,fill:false},{label:metric+ ' 2025',data:monthly25,borderColor:'#10b981',tension:0.3,fill:false}]},options:{responsive:true}});
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: metric === 'sales' ? 'Sales 2024' : 'Orders 2024',
+          data: monthly24,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: metric === 'sales' ? 'Sales 2025' : 'Orders 2025',
+          data: monthly25,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: metric === 'sales' ? 'Sales Trend' : 'Orders Trend'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return metric === 'sales' ? fmtCurrency(value) : value;
+            }
+          }
+        }
+      }
+    }
+  });
 
-  if(stackChart) stackChart.destroy();
+  // Stacked Chart
   const ctx2 = document.getElementById('stackChart');
   const branchesList = (filterBranch==='all')? unique(DATA_ROWS,'branch'):[filterBranch];
-  const labels = branchesList;
-  const selfVals = labels.map(b=> sum(DATA_ROWS.filter(r=>r.branch===b && r.channel==='Self Delivery'),'s25'));
-  const webVals = labels.map(b=> sum(DATA_ROWS.filter(r=>r.branch===b && r.channel==='Online Wab'),'s25'));
-  stackChart = new Chart(ctx2,{type:'bar',data:{labels:labels,datasets:[{label:'Self Delivery 2025',data:selfVals,backgroundColor:'#4f46e5'},{label:'Online Web 2025',data:webVals,backgroundColor:'#06b6d4'}]},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}});
+  const selfDeliveryData = branchesList.map(b => 
+    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Self Delivery'), metric === 'sales' ? 's25' : 'o25')
+  );
+  const onlineWebData = branchesList.map(b => 
+    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Online Web'), metric === 'sales' ? 's25' : 'o25')
+  );
+  
+  stackChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: branchesList,
+      datasets: [
+        {
+          label: 'Self Delivery',
+          data: selfDeliveryData,
+          backgroundColor: '#4f46e5'
+        },
+        {
+          label: 'Online Web',
+          data: onlineWebData,
+          backgroundColor: '#06b6d4'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: metric === 'sales' ? 'Sales by Channel (2025)' : 'Orders by Channel (2025)'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return metric === 'sales' ? fmtCurrency(value) : value;
+            }
+          }
+        }
+      }
+    }
+  });
 }
 
 // ======= UI interactions =======
@@ -367,7 +586,9 @@ function refresh(){
   updateKPIs(branch, channel);
   renderCharts(branch, channel, metric);
 }
-branchSelect.onchange = refresh; channelSelect.onchange = refresh; metricSelect.onchange = refresh;
+branchSelect.onchange = refresh; 
+channelSelect.onchange = refresh; 
+metricSelect.onchange = refresh;
 
 // initial render
 refresh();
@@ -375,12 +596,85 @@ refresh();
 // ======= Export CSV =======
 document.getElementById('exportCsv').onclick = function(){
   const rows = DATA_ROWS;
-  let csv = 'Month,Branch,Channel,Sales2024,Sales2025,Orders2024,Orders2025\n';
-  rows.forEach(r=> csv += `${r.month},${r.branch},${r.channel},${r.s24},${r.s25},${r.o24},${r.o25}\n`);
+  let csv = 'Month,Branch,Channel,Sales2024,Sales2025,Orders2024,Orders2025,AOV2024,AOV2025\n';
+  rows.forEach(r=>{
+    const aov24 = r.o24 ? (r.s24/r.o24).toFixed(2) : '';
+    const aov25 = r.o25 ? (r.s25/r.o25).toFixed(2) : '';
+    csv += `${r.month},${r.branch},${r.channel},${r.s24},${r.s25},${r.o24},${r.o25},${aov24},${aov25}\n`;
+  });
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='monthly_report.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); 
+  const a = document.createElement('a'); 
+  a.href=url; 
+  a.download='monthly_report.csv'; 
+  document.body.appendChild(a); 
+  a.click(); 
+  a.remove(); 
+  URL.revokeObjectURL(url);
 };
 
+// ======= Reset Data =======
+document.getElementById('resetData').onclick = function(){
+  if (confirm('Are you sure you want to reset all data?')) {
+    location.reload();
+  }
+};
+
+// ======= Add New Data =======
+function showNotification(message) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.style.display = 'block';
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, 3000);
+}
+
+document.getElementById('addDataBtn').onclick = function(){
+  const month = document.getElementById('newMonth').value;
+  const branch = document.getElementById('newBranch').value;
+  const channel = document.getElementById('newChannel').value;
+  const s24 = Number(document.getElementById('newS24').value);
+  const s25 = Number(document.getElementById('newS25').value);
+  const o24 = Number(document.getElementById('newO24').value);
+  const o25 = Number(document.getElementById('newO25').value);
+  
+  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(o24) || isNaN(o25)) {
+    alert('Please fill all fields with valid values');
+    return;
+  }
+  
+  // Add new data
+  DATA_ROWS.push({
+    m: new Date(`2024-${month}-01`).getMonth() + 1,
+    month,
+    branch,
+    channel,
+    s24,
+    s25,
+    o24,
+    o25
+  });
+  
+  // Update branches list if new branch
+  if (!branches.includes(branch)) {
+    branches.push(branch);
+    branchSelect.innerHTML = '<option value="all">All Branches</option>' + branches.map(b=>`<option>${b}</option>`).join('');
+  }
+  
+  // Reset form
+  document.getElementById('newMonth').value = '';
+  document.getElementById('newBranch').value = '';
+  document.getElementById('newChannel').value = '';
+  document.getElementById('newS24').value = '';
+  document.getElementById('newS25').value = '';
+  document.getElementById('newO24').value = '';
+  document.getElementById('newO25').value = '';
+  
+  // Refresh dashboard
+  refresh();
+  showNotification('Data added successfully!');
+};
 </script>
 </body>
 </html>
