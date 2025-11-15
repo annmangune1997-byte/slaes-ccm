@@ -29,7 +29,40 @@
   .stat-card {background:#f1f5f9;padding:10px;border-radius:6px;text-align:center}
   .stat-value {font-weight:700;font-size:16px}
   .stat-label {font-size:12px;color:#64748b}
-  @media (max-width:900px){.kpi{grid-column:span 6}.full{grid-column:span 12}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+  
+  /* Scorecards */
+  .scorecards {display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  .scorecard {background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);text-align:center}
+  .scorecard-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .scorecard-title {font-size:14px;font-weight:600;color:#0f1724}
+  .scorecard-icon {font-size:24px}
+  .scorecard-content {font-size:20px;font-weight:700;color:#4f46e5}
+  .scorecard-subtitle {font-size:12px;color:#64748b;margin-top:4px}
+  
+  /* Analytics Grid */
+  .analytics-grid {display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}
+  .analytics-card {background:#f8fafc;border-radius:8px;padding:12px}
+  .analytics-card h4 {margin:0 0 10px;font-size:14px;color:#0f1724}
+  
+  /* Export Options */
+  .export-options {display:flex;gap:8px;margin-top:12px}
+  .export-btn {padding:8px 16px;border-radius:8px;border:1px solid #cbd5e1;background:#4f46e5;color:white;font-weight:500}
+  .export-btn:hover {background:#4338ca}
+  
+  /* Insights Section */
+  .insights-section {margin-top:20px}
+  .insights-list {background:#f8fafc;border-radius:8px;padding:12px;margin-top:10px}
+  .insight-item {padding:10px;border-left:3px solid #4f46e5;margin-bottom:8px;background:#fff;border-radius:4px}
+  .insight-title {font-weight:600;margin-bottom:4px}
+  .insight-description {font-size:13px;color:#64748b}
+  
+  @media (max-width:900px){
+    .kpi{grid-column:span 6}
+    .full{grid-column:span 12}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+    .scorecards{grid-template-columns:1fr}
+    .analytics-grid{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
@@ -45,6 +78,34 @@
     <select id="metricSelect"><option value="sales">Sales</option><option value="orders">Orders</option></select>
     <button id="exportCsv">Export CSV</button>
     <button id="resetData">Reset Data</button>
+  </div>
+
+  <!-- Performance Scorecards -->
+  <div class="scorecards">
+    <div class="scorecard">
+      <div class="scorecard-header">
+        <span class="scorecard-title">Best Performer</span>
+        <span class="scorecard-icon">🏆</span>
+      </div>
+      <div class="scorecard-content" id="bestBranch">-</div>
+      <div class="scorecard-subtitle">Branch</div>
+    </div>
+    <div class="scorecard">
+      <div class="scorecard-header">
+        <span class="scorecard-title">Growth Leader</span>
+        <span class="scorecard-icon">📈</span>
+      </div>
+      <div class="scorecard-content" id="growthLeader">-</div>
+      <div class="scorecard-subtitle">Highest Growth</div>
+    </div>
+    <div class="scorecard">
+      <div class="scorecard-header">
+        <span class="scorecard-title">Efficiency Champion</span>
+        <span class="scorecard-icon">⚡</span>
+      </div>
+      <div class="scorecard-content" id="efficiencyChamp">-</div>
+      <div class="scorecard-subtitle">Best AOV</div>
+    </div>
   </div>
 
   <div class="grid" style="margin-bottom:12px">
@@ -79,9 +140,50 @@
       <h3 style="margin-top:0">Channel Comparison (2025)</h3>
       <canvas id="stackChart"></canvas>
     </div>
+    
+    <!-- Advanced Analytics Section -->
+    <div class="card full">
+      <h3 style="margin-top:0">Advanced Analytics</h3>
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h4>Branch Performance</h4>
+          <canvas id="branchChart"></canvas>
+        </div>
+        <div class="analytics-card">
+          <h4>Channel Distribution</h4>
+          <canvas id="channelChart"></canvas>
+        </div>
+        <div class="analytics-card">
+          <h4>Monthly Trends</h4>
+          <canvas id="monthlyChart"></canvas>
+        </div>
+        <div class="analytics-card">
+          <h4>Year-over-Year Comparison</h4>
+          <canvas id="yoyChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
     <div class="card full">
       <h3 style="margin-top:0">Branch × Channel Monthly Table</h3>
       <div style="overflow:auto"><table id="dataTable"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Insights Section -->
+  <div class="insights-section">
+    <h3>Key Insights</h3>
+    <div class="insights-list" id="insightsList">
+      <div class="insight-item">
+        <div class="insight-title">Loading insights...</div>
+        <div class="insight-description">Please wait while we analyze your data</div>
+      </div>
+    </div>
+    <div class="export-options">
+      <button id="generateInsights" class="export-btn">Generate Insights</button>
+      <button id="exportPDF" class="export-btn">Export PDF Report</button>
+      <button id="exportExcel" class="export-btn">Export Excel</button>
+      <button id="shareReport" class="export-btn">Share Report</button>
     </div>
   </div>
 
@@ -446,10 +548,68 @@ function updateKPIs(filterBranch, filterChannel){
   document.getElementById('tot25').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
   document.getElementById('ord24').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
   document.getElementById('ord25').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
+  
+  // Update scorecards
+  updateScorecards(filterBranch, filterChannel);
+}
+
+// ======= Scorecards =======
+function updateScorecards(filterBranch, filterChannel) {
+  const rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
+  
+  // Find best performer by total sales
+  const branchSales = {};
+  rows.forEach(r => {
+    if (!branchSales[r.branch]) branchSales[r.branch] = 0;
+    branchSales[r.branch] += r.s25;
+  });
+  
+  const bestBranch = Object.keys(branchSales).reduce((a, b) => 
+    branchSales[a] > branchSales[b] ? a : b, '');
+  document.getElementById('bestBranch').textContent = bestBranch || '-';
+  
+  // Find growth leader
+  const branchGrowth = {};
+  rows.forEach(r => {
+    if (!branchGrowth[r.branch]) branchGrowth[r.branch] = {s24: 0, s25: 0};
+    branchGrowth[r.branch].s24 += r.s24;
+    branchGrowth[r.branch].s25 += r.s25;
+  });
+  
+  let maxGrowth = 0;
+  let growthLeader = '-';
+  Object.keys(branchGrowth).forEach(branch => {
+    const growth = calculateGrowth(branchGrowth[branch].s25, branchGrowth[branch].s24);
+    if (growth > maxGrowth) {
+      maxGrowth = growth;
+      growthLeader = branch;
+    }
+  });
+  document.getElementById('growthLeader').textContent = growthLeader;
+  
+  // Find efficiency champion (best AOV)
+  const branchAOV = {};
+  rows.forEach(r => {
+    if (!branchAOV[r.branch]) branchAOV[r.branch] = {sales: 0, orders: 0};
+    branchAOV[r.branch].sales += r.s25;
+    branchAOV[r.branch].orders += r.o25;
+  });
+  
+  let bestAOV = 0;
+  let efficiencyChamp = '-';
+  Object.keys(branchAOV).forEach(branch => {
+    const aov = branchAOV[branch].orders > 0 ? 
+      branchAOV[branch].sales / branchAOV[branch].orders : 0;
+    if (aov > bestAOV) {
+      bestAOV = aov;
+      efficiencyChamp = branch;
+    }
+  });
+  document.getElementById('efficiencyChamp').textContent = efficiencyChamp;
 }
 
 // ======= Charts =======
-let trendChart, stackChart;
+let trendChart, stackChart, branchChart, channelChart, monthlyChart, yoyChart;
 function renderCharts(filterBranch, filterChannel, metric){
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const monthly24 = Array(12).fill(0);
@@ -471,6 +631,10 @@ function renderCharts(filterBranch, filterChannel, metric){
   // Destroy existing charts
   if (trendChart) trendChart.destroy();
   if (stackChart) stackChart.destroy();
+  if (branchChart) branchChart.destroy();
+  if (channelChart) channelChart.destroy();
+  if (monthlyChart) monthlyChart.destroy();
+  if (yoyChart) yoyChart.destroy();
   
   // Trend Chart
   const ctx = document.getElementById('trendChart');
@@ -573,6 +737,262 @@ function renderCharts(filterBranch, filterChannel, metric){
       }
     }
   });
+  
+  // Branch Performance Chart
+  const ctx3 = document.getElementById('branchChart');
+  const branchSales2024 = {};
+  const branchSales2025 = {};
+  
+  DATA_ROWS.forEach(r => {
+    if (!branchSales2024[r.branch]) branchSales2024[r.branch] = 0;
+    if (!branchSales2025[r.branch]) branchSales2025[r.branch] = 0;
+    branchSales2024[r.branch] += r.s24;
+    branchSales2025[r.branch] += r.s25;
+  });
+  
+  branchChart = new Chart(ctx3, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(branchSales2024),
+      datasets: [
+        {
+          label: '2024',
+          data: Object.values(branchSales2024),
+          backgroundColor: '#3b82f6'
+        },
+        {
+          label: '2025',
+          data: Object.values(branchSales2025),
+          backgroundColor: '#10b981'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Branch Sales Comparison'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return fmtCurrency(value);
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Channel Distribution Chart
+  const ctx4 = document.getElementById('channelChart');
+  const channelSales2025 = {
+    'Self Delivery': sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's25'),
+    'Online Web': sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's25')
+  };
+  
+  channelChart = new Chart(ctx4, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(channelSales2025),
+      datasets: [{
+        data: Object.values(channelSales2025),
+        backgroundColor: ['#4f46e5', '#06b6d4']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Sales Distribution by Channel'
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+  // Monthly Trends Chart
+  const ctx5 = document.getElementById('monthlyChart');
+  const monthlyTrend2024 = {};
+  const monthlyTrend2025 = {};
+  
+  months.forEach(month => {
+    monthlyTrend2024[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's24');
+    monthlyTrend2025[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's25');
+  });
+  
+  monthlyChart = new Chart(ctx5, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: '2024',
+          data: Object.values(monthlyTrend2024),
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.3
+        },
+        {
+          label: '2025',
+          data: Object.values(monthlyTrend2025),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Monthly Sales Trends'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return fmtCurrency(value);
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Year-over-Year Comparison Chart
+  const ctx6 = document.getElementById('yoyChart');
+  const yoyData = [];
+  const yoyLabels = [];
+  
+  DATA_ROWS.forEach(r => {
+    if (r.s25 > 0) {
+      const growth = calculateGrowth(r.s25, r.s24);
+      yoyLabels.push(`${r.branch} - ${r.month}`);
+      yoyData.push(growth);
+    }
+  });
+  
+  yoyChart = new Chart(ctx6, {
+    type: 'bar',
+    data: {
+      labels: yoyLabels,
+      datasets: [{
+        label: 'YoY Growth %',
+        data: yoyData,
+        backgroundColor: yoyData.map(val => val > 0 ? '#10b981' : '#ef4444')
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Year-over-Year Growth Comparison'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ======= Generate Insights =======
+function generateInsights() {
+  const insights = [];
+  
+  // Calculate overall performance
+  const totalSales2024 = sum(DATA_ROWS, 's24');
+  const totalSales2025 = sum(DATA_ROWS, 's25');
+  const salesGrowth = calculateGrowth(totalSales2025, totalSales2024);
+  
+  if (salesGrowth > 0) {
+    insights.push({
+      title: 'Positive Sales Growth',
+      description: `Overall sales increased by ${salesGrowth}% from 2024 to 2025, indicating strong business performance.`
+    });
+  } else {
+    insights.push({
+      title: 'Sales Decline',
+      description: `Overall sales decreased by ${Math.abs(salesGrowth)}% from 2024 to 2025. Review marketing strategies and operational efficiency.`
+    });
+  }
+  
+  // Channel performance analysis
+  const selfDeliverySales2025 = sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's25');
+  const onlineWebSales2025 = sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's25');
+  
+  if (onlineWebSales2025 > selfDeliverySales2025) {
+    insights.push({
+      title: 'Online Web Dominance',
+      description: 'Online Web channel outperformed Self Delivery in 2025. Consider expanding online presence and digital marketing efforts.'
+    });
+  } else {
+    insights.push({
+      title: 'Self Delivery Strength',
+      description: 'Self Delivery channel remains stronger. Focus on optimizing in-store experience and customer service.'
+    });
+  }
+  
+  // Branch performance analysis
+  const branchPerformance = {};
+  DATA_ROWS.forEach(r => {
+    if (!branchPerformance[r.branch]) branchPerformance[r.branch] = {sales: 0, growth: 0};
+    branchPerformance[r.branch].sales += r.s25;
+  });
+  
+  const topBranch = Object.keys(branchPerformance).reduce((a, b) => 
+    branchPerformance[a].sales > branchPerformance[b].sales ? a : b, '');
+  
+  insights.push({
+    title: 'Top Performing Branch',
+    description: `${topBranch} leads in sales performance. Analyze best practices and consider replicating strategies across other branches.`
+  });
+  
+  // Seasonality analysis
+  const monthlyPerformance = {};
+  months.forEach(month => {
+    monthlyPerformance[month] = sum(DATA_ROWS.filter(r => r.month === month), 's25');
+  });
+  
+  const bestMonth = Object.keys(monthlyPerformance).reduce((a, b) => 
+    monthlyPerformance[a] > monthlyPerformance[b] ? a : b, '');
+  
+  insights.push({
+    title: 'Peak Performance Month',
+    description: `${bestMonth} shows the highest sales volume. Plan targeted promotions and resource allocation for this period.`
+  });
+  
+  // Render insights
+  const insightsList = document.getElementById('insightsList');
+  insightsList.innerHTML = insights.map(insight => `
+    <div class="insight-item">
+      <div class="insight-title">${insight.title}</div>
+      <div class="insight-description">${insight.description}</div>
+    </div>
+  `).join('');
 }
 
 // ======= UI interactions =======
@@ -617,6 +1037,32 @@ document.getElementById('exportCsv').onclick = function(){
 document.getElementById('resetData').onclick = function(){
   if (confirm('Are you sure you want to reset all data?')) {
     location.reload();
+  }
+};
+
+// ======= Generate Insights Button =======
+document.getElementById('generateInsights').onclick = generateInsights;
+
+// ======= Export PDF =======
+document.getElementById('exportPDF').onclick = function(){
+  alert('PDF export functionality would be implemented here using a library like jsPDF');
+};
+
+// ======= Export Excel =======
+document.getElementById('exportExcel').onclick = function(){
+  alert('Excel export functionality would be implemented here using a library like SheetJS');
+};
+
+// ======= Share Report =======
+document.getElementById('shareReport').onclick = function(){
+  if (navigator.share) {
+    navigator.share({
+      title: 'Sales Performance Report',
+      text: 'Check out our latest sales performance report',
+      url: window.location.href
+    });
+  } else {
+    alert('Share functionality would be implemented here with fallback options');
   }
 };
 
