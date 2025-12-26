@@ -26,13 +26,13 @@
   .form-row {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
   .form-row input, .form-row select {padding:8px; border-radius:6px; border:1px solid #cbd5e1}
   .notification {position:fixed; top:20px; right:20px; padding:12px 20px; background:#10b981; color:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:none; z-index:1000}
-  .stats-grid {display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+  .stats-grid {display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:10px}
   .stat-card {background:#f1f5f9;padding:10px;border-radius:6px;text-align:center}
   .stat-value {font-weight:700;font-size:16px}
   .stat-label {font-size:12px;color:#64748b}
   
   /* Scorecards */
-  .scorecards {display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  .scorecards {display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
   .scorecard {background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);text-align:center}
   .scorecard-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
   .scorecard-title {font-size:14px;font-weight:600;color:#0f1724}
@@ -81,7 +81,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>📊 Self‑Delivery vs Online Web — Monthly Unified Report (2024 → 2025)</h1>
+  <h1>📊 Self‑Delivery vs Online Web — Monthly Unified Report (2024 → 2026)</h1>
 
   <div class="controls" style="margin-bottom:12px">
     <label class="muted">Branch</label>
@@ -121,13 +121,23 @@
       <div class="scorecard-content" id="efficiencyChamp">-</div>
       <div class="scorecard-subtitle">Best AOV</div>
     </div>
+    <div class="scorecard">
+      <div class="scorecard-header">
+        <span class="scorecard-title">2026 Potential</span>
+        <span class="scorecard-icon">🔮</span>
+      </div>
+      <div class="scorecard-content" id="potential2026">-</div>
+      <div class="scorecard-subtitle">Projected Growth</div>
+    </div>
   </div>
 
   <div class="grid" style="margin-bottom:12px">
     <div class="card kpi"><div class="muted">Total Sales 2024</div><div id="tot24" style="font-weight:700;font-size:18px"></div></div>
     <div class="card kpi"><div class="muted">Total Sales 2025</div><div id="tot25" style="font-weight:700;font-size:18px"></div></div>
+    <div class="card kpi"><div class="muted">Total Sales 2026</div><div id="tot26" style="font-weight:700;font-size:18px"></div></div>
     <div class="card kpi"><div class="muted">Total Orders 2024</div><div id="ord24" style="font-weight:700;font-size:18px"></div></div>
     <div class="card kpi"><div class="muted">Total Orders 2025</div><div id="ord25" style="font-weight:700;font-size:18px"></div></div>
+    <div class="card kpi"><div class="muted">Total Orders 2026</div><div id="ord26" style="font-weight:700;font-size:18px"></div></div>
 
     <div class="card full">
       <h3 style="margin-top:0">Trend Analysis</h3>
@@ -137,19 +147,27 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-value" id="salesGrowth">0%</div>
-          <div class="stat-label">Sales Growth</div>
+          <div class="stat-label">Sales Growth (24→25)</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="orderGrowth">0%</div>
-          <div class="stat-label">Order Growth</div>
+          <div class="stat-label">Order Growth (24→25)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="salesGrowth26">0%</div>
+          <div class="stat-label">Sales Growth (25→26)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="orderGrowth26">0%</div>
+          <div class="stat-label">Order Growth (25→26)</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="avgAOV24">0</div>
           <div class="stat-label">Avg AOV 2024</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="avgAOV25">0</div>
-          <div class="stat-label">Avg AOV 2025</div>
+          <div class="stat-value" id="avgAOV26">0</div>
+          <div class="stat-label">Avg AOV 2026</div>
         </div>
       </div>
     </div>
@@ -164,7 +182,7 @@
       </div>
       
       <div class="tab-content active" id="channel-tab">
-        <h3 style="margin-top:0">Channel Comparison (2025)</h3>
+        <h3 style="margin-top:0">Channel Comparison (2026)</h3>
         <div class="chart-container">
           <canvas id="stackChart"></canvas>
         </div>
@@ -229,8 +247,12 @@
     <div class="form-row">
       <input type="number" id="newS24" placeholder="Sales 2024" required>
       <input type="number" id="newS25" placeholder="Sales 2025" required>
+      <input type="number" id="newS26" placeholder="Sales 2026" required>
+    </div>
+    <div class="form-row">
       <input type="number" id="newO24" placeholder="Orders 2024" required>
       <input type="number" id="newO25" placeholder="Orders 2025" required>
+      <input type="number" id="newO26" placeholder="Orders 2026" required>
     </div>
     <button id="addDataBtn">Add Data</button>
   </div>
@@ -243,245 +265,245 @@
 // ======= Full monthly rows as objects (converted from user's data) =======
 const DATA_ROWS = [
 // Hamdan St — Self Delivery
-{m:1,month:'Jan',branch:'Hamdan St',channel:'Self Delivery',s24:130332,s25:119300,o24:2797,o25:2757},
-{m:2,month:'Feb',branch:'Hamdan St',channel:'Self Delivery',s24:119033,s25:111546,o24:2797,o25:2460},
-{m:3,month:'Mar',branch:'Hamdan St',channel:'Self Delivery',s24:112730,s25:87783,o24:2474,o25:1877},
-{m:4,month:'Apr',branch:'Hamdan St',channel:'Self Delivery',s24:134005,s25:106625,o24:2815,o25:2363},
-{m:5,month:'May',branch:'Hamdan St',channel:'Self Delivery',s24:142948,s25:117066,o24:3066,o25:2515},
-{m:6,month:'Jun',branch:'Hamdan St',channel:'Self Delivery',s24:153855,s25:106229,o24:3261,o25:2318},
-{m:7,month:'Jul',branch:'Hamdan St',channel:'Self Delivery',s24:140646,s25:109205,o24:3236,o25:2557},
-{m:8,month:'Aug',branch:'Hamdan St',channel:'Self Delivery',s24:146010,s25:103184,o24:3267,o25:2247},
-{m:9,month:'Sep',branch:'Hamdan St',channel:'Self Delivery',s24:124891,s25:106562,o24:2658,o25:2345},
-{m:10,month:'Oct',branch:'Hamdan St',channel:'Self Delivery',s24:122430,s25:103567,o24:2716,o25:2165},
-{m:11,month:'Nov',branch:'Hamdan St',channel:'Self Delivery',s24:122157,s25:0,o24:2835,o25:0},
-{m:12,month:'Dec',branch:'Hamdan St',channel:'Self Delivery',s24:134030,s25:0,o24:2740,o25:0},
+{m:1,month:'Jan',branch:'Hamdan St',channel:'Self Delivery',s24:130332,s25:119300,s26:0,o24:2797,o25:2757,o26:0},
+{m:2,month:'Feb',branch:'Hamdan St',channel:'Self Delivery',s24:119033,s25:111546,s26:0,o24:2797,o25:2460,o26:0},
+{m:3,month:'Mar',branch:'Hamdan St',channel:'Self Delivery',s24:112730,s25:87783,s26:0,o24:2474,o25:1877,o26:0},
+{m:4,month:'Apr',branch:'Hamdan St',channel:'Self Delivery',s24:134005,s25:106625,s26:0,o24:2815,o25:2363,o26:0},
+{m:5,month:'May',branch:'Hamdan St',channel:'Self Delivery',s24:142948,s25:117066,s26:0,o24:3066,o25:2515,o26:0},
+{m:6,month:'Jun',branch:'Hamdan St',channel:'Self Delivery',s24:153855,s25:106229,s26:0,o24:3261,o25:2318,o26:0},
+{m:7,month:'Jul',branch:'Hamdan St',channel:'Self Delivery',s24:140646,s25:109205,s26:0,o24:3236,o25:2557,o26:0},
+{m:8,month:'Aug',branch:'Hamdan St',channel:'Self Delivery',s24:146010,s25:103184,s26:0,o24:3267,o25:2247,o26:0},
+{m:9,month:'Sep',branch:'Hamdan St',channel:'Self Delivery',s24:124891,s25:106562,s26:0,o24:2658,o25:2345,o26:0},
+{m:10,month:'Oct',branch:'Hamdan St',channel:'Self Delivery',s24:122430,s25:103567,s26:0,o24:2716,o25:2165,o26:0},
+{m:11,month:'Nov',branch:'Hamdan St',channel:'Self Delivery',s24:122157,s25:0,s26:0,o24:2835,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Hamdan St',channel:'Self Delivery',s24:134030,s25:0,s26:0,o24:2740,o25:0,o26:0},
 // Hamdan St — Online Web
-{m:1,month:'Jan',branch:'Hamdan St',channel:'Online Web',s24:39204,s25:25546,o24:771,o25:569},
-{m:2,month:'Feb',branch:'Hamdan St',channel:'Online Web',s24:33373,s25:28689,o24:661,o25:644},
-{m:3,month:'Mar',branch:'Hamdan St',channel:'Online Web',s24:29535,s25:23967,o24:615,o25:493},
-{m:4,month:'Apr',branch:'Hamdan St',channel:'Online Web',s24:33433,s25:35261,o24:674,o25:750},
-{m:5,month:'May',branch:'Hamdan St',channel:'Online Web',s24:35454,s25:39090,o24:733,o25:905},
-{m:6,month:'Jun',branch:'Hamdan St',channel:'Online Web',s24:40787,s25:38061,o24:825,o25:800},
-{m:7,month:'Jul',branch:'Hamdan St',channel:'Online Web',s24:39832,s25:41582,o24:876,o25:1007},
-{m:8,month:'Aug',branch:'Hamdan St',channel:'Online Web',s24:32362,s25:34835,o24:756,o25:771},
-{m:9,month:'Sep',branch:'Hamdan St',channel:'Online Web',s24:27887,s25:41146,o24:547,o25:889},
-{m:10,month:'Oct',branch:'Hamdan St',channel:'Online Web',s24:25924,s25:32395,o24:590,o25:688},
-{m:11,month:'Nov',branch:'Hamdan St',channel:'Online Web',s24:20000,s25:0,o24:450,o25:0},
-{m:12,month:'Dec',branch:'Hamdan St',channel:'Online Web',s24:24052,s25:0,o24:494,o25:0},
+{m:1,month:'Jan',branch:'Hamdan St',channel:'Online Web',s24:39204,s25:25546,s26:0,o24:771,o25:569,o26:0},
+{m:2,month:'Feb',branch:'Hamdan St',channel:'Online Web',s24:33373,s25:28689,s26:0,o24:661,o25:644,o26:0},
+{m:3,month:'Mar',branch:'Hamdan St',channel:'Online Web',s24:29535,s25:23967,s26:0,o24:615,o25:493,o26:0},
+{m:4,month:'Apr',branch:'Hamdan St',channel:'Online Web',s24:33433,s25:35261,s26:0,o24:674,o25:750,o26:0},
+{m:5,month:'May',branch:'Hamdan St',channel:'Online Web',s24:35454,s25:39090,s26:0,o24:733,o25:905,o26:0},
+{m:6,month:'Jun',branch:'Hamdan St',channel:'Online Web',s24:40787,s25:38061,s26:0,o24:825,o25:800,o26:0},
+{m:7,month:'Jul',branch:'Hamdan St',channel:'Online Web',s24:39832,s25:41582,s26:0,o24:876,o25:1007,o26:0},
+{m:8,month:'Aug',branch:'Hamdan St',channel:'Online Web',s24:32362,s25:34835,s26:0,o24:756,o25:771,o26:0},
+{m:9,month:'Sep',branch:'Hamdan St',channel:'Online Web',s24:27887,s25:41146,s26:0,o24:547,o25:889,o26:0},
+{m:10,month:'Oct',branch:'Hamdan St',channel:'Online Web',s24:25924,s25:32395,s26:0,o24:590,o25:688,o26:0},
+{m:11,month:'Nov',branch:'Hamdan St',channel:'Online Web',s24:20000,s25:0,s26:0,o24:450,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Hamdan St',channel:'Online Web',s24:24052,s25:0,s26:0,o24:494,o25:0,o26:0},
 
 // Al Khalidiyah — Self Delivery
-{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Self Delivery',s24:73203,s25:60360,o24:1444,o25:1241},
-{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Self Delivery',s24:64910,s25:51718,o24:1270,o25:1054},
-{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Self Delivery',s24:56006,s25:44621,o24:1114,o25:891},
-{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Self Delivery',s24:63867,s25:54785,o24:1268,o25:1156},
-{m:5,month:'May',branch:'Al Khalidiyah',channel:'Self Delivery',s24:71236,s25:54610,o24:1423,o25:1083},
-{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Self Delivery',s24:78402,s25:56860,o24:1467,o25:1078},
-{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Self Delivery',s24:72570,s25:51618,o24:1438,o25:1097},
-{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Self Delivery',s24:70910,s25:51039,o24:1505,o25:1032},
-{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Self Delivery',s24:61308,s25:57769,o24:1264,o25:1144},
-{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60725,s25:61294,o24:1298,o25:1164},
-{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60461,s25:0,o24:1217,o25:0},
-{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Self Delivery',s24:85037,s25:0,o24:1225,o25:0},
+{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Self Delivery',s24:73203,s25:60360,s26:0,o24:1444,o25:1241,o26:0},
+{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Self Delivery',s24:64910,s25:51718,s26:0,o24:1270,o25:1054,o26:0},
+{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Self Delivery',s24:56006,s25:44621,s26:0,o24:1114,o25:891,o26:0},
+{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Self Delivery',s24:63867,s25:54785,s26:0,o24:1268,o25:1156,o26:0},
+{m:5,month:'May',branch:'Al Khalidiyah',channel:'Self Delivery',s24:71236,s25:54610,s26:0,o24:1423,o25:1083,o26:0},
+{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Self Delivery',s24:78402,s25:56860,s26:0,o24:1467,o25:1078,o26:0},
+{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Self Delivery',s24:72570,s25:51618,s26:0,o24:1438,o25:1097,o26:0},
+{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Self Delivery',s24:70910,s25:51039,s26:0,o24:1505,o25:1032,o26:0},
+{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Self Delivery',s24:61308,s25:57769,s26:0,o24:1264,o25:1144,o26:0},
+{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60725,s25:61294,s26:0,o24:1298,o25:1164,o26:0},
+{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60461,s25:0,s26:0,o24:1217,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Self Delivery',s24:85037,s25:0,s26:0,o24:1225,o25:0,o26:0},
 // Al Khalidiyah — Online Web
-{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Online Web',s24:21135,s25:13749,o24:412,o25:292},
-{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Online Web',s24:21217,s25:14662,o24:417,o25:305},
-{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Online Web',s24:16169,s25:12644,o24:321,o25:198},
-{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Online Web',s24:20903,s25:16370,o24:390,o25:312},
-{m:5,month:'May',branch:'Al Khalidiyah',channel:'Online Web',s24:19685,s25:20318,o24:366,o25:439},
-{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Online Web',s24:21759,s25:19102,o24:399,o25:377},
-{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Online Web',s24:22254,s25:17766,o24:447,o25:426},
-{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Online Web',s24:18936,s25:17361,o24:388,o25:365},
-{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Online Web',s24:14826,s25:16495,o24:281,o25:316},
-{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Online Web',s24:16403,s25:17815,o24:371,o25:354},
-{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Online Web',s24:11694,s25:0,o24:253,o25:0},
-{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Online Web',s24:12724,s25:0,o24:245,o25:0},
+{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Online Web',s24:21135,s25:13749,s26:0,o24:412,o25:292,o26:0},
+{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Online Web',s24:21217,s25:14662,s26:0,o24:417,o25:305,o26:0},
+{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Online Web',s24:16169,s25:12644,s26:0,o24:321,o25:198,o26:0},
+{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Online Web',s24:20903,s25:16370,s26:0,o24:390,o25:312,o26:0},
+{m:5,month:'May',branch:'Al Khalidiyah',channel:'Online Web',s24:19685,s25:20318,s26:0,o24:366,o25:439,o26:0},
+{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Online Web',s24:21759,s25:19102,s26:0,o24:399,o25:377,o26:0},
+{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Online Web',s24:22254,s25:17766,s26:0,o24:447,o25:426,o26:0},
+{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Online Web',s24:18936,s25:17361,s26:0,o24:388,o25:365,o26:0},
+{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Online Web',s24:14826,s25:16495,s26:0,o24:281,o25:316,o26:0},
+{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Online Web',s24:16403,s25:17815,s26:0,o24:371,o25:354,o26:0},
+{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Online Web',s24:11694,s25:0,s26:0,o24:253,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Online Web',s24:12724,s25:0,s26:0,o24:245,o25:0,o26:0},
 
 // Shabiya 11 — Self Delivery
-{m:1,month:'Jan',branch:'Shabiya 11',channel:'Self Delivery',s24:53600,s25:52778,o24:1184,o25:1201},
-{m:2,month:'Feb',branch:'Shabiya 11',channel:'Self Delivery',s24:56902,s25:51105,o24:1260,o25:1136},
-{m:3,month:'Mar',branch:'Shabiya 11',channel:'Self Delivery',s24:50445,s25:40273,o24:1167,o25:906},
-{m:4,month:'Apr',branch:'Shabiya 11',channel:'Self Delivery',s24:63642,s25:56981,o24:1434,o25:1246},
-{m:5,month:'May',branch:'Shabiya 11',channel:'Self Delivery',s24:62211,s25:56703,o24:1380,o25:1187},
-{m:6,month:'Jun',branch:'Shabiya 11',channel:'Self Delivery',s24:64920,s25:54611,o24:1396,o25:1114},
-{m:7,month:'Jul',branch:'Shabiya 11',channel:'Self Delivery',s24:60095,s25:55160,o24:1366,o25:1177},
-{m:8,month:'Aug',branch:'Shabiya 11',channel:'Self Delivery',s24:58704,s25:55336,o24:1388,o25:1162},
-{m:9,month:'Sep',branch:'Shabiya 11',channel:'Self Delivery',s24:50504,s25:61290,o24:1135,o25:1269},
-{m:10,month:'Oct',branch:'Shabiya 11',channel:'Self Delivery',s24:56993,s25:57956,o24:1324,o25:1225},
-{m:11,month:'Nov',branch:'Shabiya 11',channel:'Self Delivery',s24:59511,s25:0,o24:1272,o25:0},
-{m:12,month:'Dec',branch:'Shabiya 11',channel:'Self Delivery',s24:56257,s25:0,o24:1152,o25:0},
+{m:1,month:'Jan',branch:'Shabiya 11',channel:'Self Delivery',s24:53600,s25:52778,s26:0,o24:1184,o25:1201,o26:0},
+{m:2,month:'Feb',branch:'Shabiya 11',channel:'Self Delivery',s24:56902,s25:51105,s26:0,o24:1260,o25:1136,o26:0},
+{m:3,month:'Mar',branch:'Shabiya 11',channel:'Self Delivery',s24:50445,s25:40273,s26:0,o24:1167,o25:906,o26:0},
+{m:4,month:'Apr',branch:'Shabiya 11',channel:'Self Delivery',s24:63642,s25:56981,s26:0,o24:1434,o25:1246,o26:0},
+{m:5,month:'May',branch:'Shabiya 11',channel:'Self Delivery',s24:62211,s25:56703,s26:0,o24:1380,o25:1187,o26:0},
+{m:6,month:'Jun',branch:'Shabiya 11',channel:'Self Delivery',s24:64920,s25:54611,s26:0,o24:1396,o25:1114,o26:0},
+{m:7,month:'Jul',branch:'Shabiya 11',channel:'Self Delivery',s24:60095,s25:55160,s26:0,o24:1366,o25:1177,o26:0},
+{m:8,month:'Aug',branch:'Shabiya 11',channel:'Self Delivery',s24:58704,s25:55336,s26:0,o24:1388,o25:1162,o26:0},
+{m:9,month:'Sep',branch:'Shabiya 11',channel:'Self Delivery',s24:50504,s25:61290,s26:0,o24:1135,o25:1269,o26:0},
+{m:10,month:'Oct',branch:'Shabiya 11',channel:'Self Delivery',s24:56993,s25:57956,s26:0,o24:1324,o25:1225,o26:0},
+{m:11,month:'Nov',branch:'Shabiya 11',channel:'Self Delivery',s24:59511,s25:0,s26:0,o24:1272,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Shabiya 11',channel:'Self Delivery',s24:56257,s25:0,s26:0,o24:1152,o25:0,o26:0},
 // Shabiya 11 — Online Web
-{m:1,month:'Jan',branch:'Shabiya 11',channel:'Online Web',s24:11054,s25:7398,o24:244,o25:177},
-{m:2,month:'Feb',branch:'Shabiya 11',channel:'Online Web',s24:11743,s25:6340,o24:222,o25:143},
-{m:3,month:'Mar',branch:'Shabiya 11',channel:'Online Web',s24:8011,s25:3282,o24:179,o25:74},
-{m:4,month:'Apr',branch:'Shabiya 11',channel:'Online Web',s24:7720,s25:12005,o24:163,o25:245},
-{m:5,month:'May',branch:'Shabiya 11',channel:'Online Web',s24:10015,s25:13045,o24:204,o25:308},
-{m:6,month:'Jun',branch:'Shabiya 11',channel:'Online Web',s24:11933,s25:15350,o24:238,o25:306},
-{m:7,month:'Jul',branch:'Shabiya 11',channel:'Online Web',s24:9793,s25:16910,o24:223,o25:404},
-{m:8,month:'Aug',branch:'Shabiya 11',channel:'Online Web',s24:11299,s25:12568,o24:237,o25:260},
-{m:9,month:'Sep',branch:'Shabiya 11',channel:'Online Web',s24:8747,s25:10420,o24:179,o25:216},
-{m:10,month:'Oct',branch:'Shabiya 11',channel:'Online Web',s24:10253,s25:11708,o24:257,o25:254},
-{m:11,month:'Nov',branch:'Shabiya 11',channel:'Online Web',s24:10046,s25:0,o24:219,o25:0},
-{m:12,month:'Dec',branch:'Shabiya 11',channel:'Online Web',s24:7951,s25:0,o24:151,o25:0},
+{m:1,month:'Jan',branch:'Shabiya 11',channel:'Online Web',s24:11054,s25:7398,s26:0,o24:244,o25:177,o26:0},
+{m:2,month:'Feb',branch:'Shabiya 11',channel:'Online Web',s24:11743,s25:6340,s26:0,o24:222,o25:143,o26:0},
+{m:3,month:'Mar',branch:'Shabiya 11',channel:'Online Web',s24:8011,s25:3282,s26:0,o24:179,o25:74,o26:0},
+{m:4,month:'Apr',branch:'Shabiya 11',channel:'Online Web',s24:7720,s25:12005,s26:0,o24:163,o25:245,o26:0},
+{m:5,month:'May',branch:'Shabiya 11',channel:'Online Web',s24:10015,s25:13045,s26:0,o24:204,o25:308,o26:0},
+{m:6,month:'Jun',branch:'Shabiya 11',channel:'Online Web',s24:11933,s25:15350,s26:0,o24:238,o25:306,o26:0},
+{m:7,month:'Jul',branch:'Shabiya 11',channel:'Online Web',s24:9793,s25:16910,s26:0,o24:223,o25:404,o26:0},
+{m:8,month:'Aug',branch:'Shabiya 11',channel:'Online Web',s24:11299,s25:12568,s26:0,o24:237,o25:260,o26:0},
+{m:9,month:'Sep',branch:'Shabiya 11',channel:'Online Web',s24:8747,s25:10420,s26:0,o24:179,o25:216,o26:0},
+{m:10,month:'Oct',branch:'Shabiya 11',channel:'Online Web',s24:10253,s25:11708,s26:0,o24:257,o25:254,o26:0},
+{m:11,month:'Nov',branch:'Shabiya 11',channel:'Online Web',s24:10046,s25:0,s26:0,o24:219,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Shabiya 11',channel:'Online Web',s24:7951,s25:0,s26:0,o24:151,o25:0,o26:0},
 
 // Muroor — Self Delivery
-{m:1,month:'Jan',branch:'Muroor',channel:'Self Delivery',s24:56696,s25:59749,o24:1140,o25:1255},
-{m:2,month:'Feb',branch:'Muroor',channel:'Self Delivery',s24:54156,s25:58438,o24:1078,o25:1199},
-{m:3,month:'Mar',branch:'Muroor',channel:'Self Delivery',s24:45652,s25:41808,o24:899,o25:817},
-{m:4,month:'Apr',branch:'Muroor',channel:'Self Delivery',s24:59978,s25:56795,o24:1209,o25:1211},
-{m:5,month:'May',branch:'Muroor',channel:'Self Delivery',s24:61958,s25:54302,o24:1294,o25:1094},
-{m:6,month:'Jun',branch:'Muroor',channel:'Self Delivery',s24:71109,s25:56046,o24:1341,o25:1076},
-{m:7,month:'Jul',branch:'Muroor',channel:'Self Delivery',s24:63143,s25:53001,o24:1360,o25:1114},
-{m:8,month:'Aug',branch:'Muroor',channel:'Self Delivery',s24:64842,s25:44361,o24:1386,o25:912},
-{m:9,month:'Sep',branch:'Muroor',channel:'Self Delivery',s24:61113,s25:51018,o24:1295,o25:973},
-{m:10,month:'Oct',branch:'Muroor',channel:'Self Delivery',s24:65561,s25:50495,o24:1384,o25:973},
-{m:11,month:'Nov',branch:'Muroor',channel:'Self Delivery',s24:62004,s25:0,o24:1380,o25:0},
-{m:12,month:'Dec',branch:'Muroor',channel:'Self Delivery',s24:63780,s25:0,o24:1231,o25:0},
+{m:1,month:'Jan',branch:'Muroor',channel:'Self Delivery',s24:56696,s25:59749,s26:0,o24:1140,o25:1255,o26:0},
+{m:2,month:'Feb',branch:'Muroor',channel:'Self Delivery',s24:54156,s25:58438,s26:0,o24:1078,o25:1199,o26:0},
+{m:3,month:'Mar',branch:'Muroor',channel:'Self Delivery',s24:45652,s25:41808,s26:0,o24:899,o25:817,o26:0},
+{m:4,month:'Apr',branch:'Muroor',channel:'Self Delivery',s24:59978,s25:56795,s26:0,o24:1209,o25:1211,o26:0},
+{m:5,month:'May',branch:'Muroor',channel:'Self Delivery',s24:61958,s25:54302,s26:0,o24:1294,o25:1094,o26:0},
+{m:6,month:'Jun',branch:'Muroor',channel:'Self Delivery',s24:71109,s25:56046,s26:0,o24:1341,o25:1076,o26:0},
+{m:7,month:'Jul',branch:'Muroor',channel:'Self Delivery',s24:63143,s25:53001,s26:0,o24:1360,o25:1114,o26:0},
+{m:8,month:'Aug',branch:'Muroor',channel:'Self Delivery',s24:64842,s25:44361,s26:0,o24:1386,o25:912,o26:0},
+{m:9,month:'Sep',branch:'Muroor',channel:'Self Delivery',s24:61113,s25:51018,s26:0,o24:1295,o25:973,o26:0},
+{m:10,month:'Oct',branch:'Muroor',channel:'Self Delivery',s24:65561,s25:50495,s26:0,o24:1384,o25:973,o26:0},
+{m:11,month:'Nov',branch:'Muroor',channel:'Self Delivery',s24:62004,s25:0,s26:0,o24:1380,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Muroor',channel:'Self Delivery',s24:63780,s25:0,s26:0,o24:1231,o25:0,o26:0},
 // Muroor — Online Web
-{m:1,month:'Jan',branch:'Muroor',channel:'Online Web',s24:8231,s25:3352,o24:154,o25:72},
-{m:2,month:'Feb',branch:'Muroor',channel:'Online Web',s24:11050,s25:3939,o24:199,o25:74},
-{m:3,month:'Mar',branch:'Muroor',channel:'Online Web',s24:7874,s25:3831,o24:143,o25:67},
-{m:4,month:'Apr',branch:'Muroor',channel:'Online Web',s24:8167,s25:6103,o24:140,o25:113},
-{m:5,month:'May',branch:'Muroor',channel:'Online Web',s24:9704,s25:6438,o24:174,o25:131},
-{m:6,month:'Jun',branch:'Muroor',channel:'Online Web',s24:10966,s25:6600,o24:191,o25:120},
-{m:7,month:'Jul',branch:'Muroor',channel:'Online Web',s24:9358,s25:6127,o24:176,o25:125},
-{m:8,month:'Aug',branch:'Muroor',channel:'Online Web',s24:8392,s25:5884,o24:157,o25:116},
-{m:9,month:'Sep',branch:'Muroor',channel:'Online Web',s24:7504,s25:6668,o24:146,o25:119},
-{m:10,month:'Oct',branch:'Muroor',channel:'Online Web',s24:5777,s25:5435,o24:146,o25:89},
-{m:11,month:'Nov',branch:'Muroor',channel:'Online Web',s24:6152,s25:0,o24:116,o25:0},
-{m:12,month:'Dec',branch:'Muroor',channel:'Online Web',s24:8064,s25:0,o24:119,o25:0},
+{m:1,month:'Jan',branch:'Muroor',channel:'Online Web',s24:8231,s25:3352,s26:0,o24:154,o25:72,o26:0},
+{m:2,month:'Feb',branch:'Muroor',channel:'Online Web',s24:11050,s25:3939,s26:0,o24:199,o25:74,o26:0},
+{m:3,month:'Mar',branch:'Muroor',channel:'Online Web',s24:7874,s25:3831,s26:0,o24:143,o25:67,o26:0},
+{m:4,month:'Apr',branch:'Muroor',channel:'Online Web',s24:8167,s25:6103,s26:0,o24:140,o25:113,o26:0},
+{m:5,month:'May',branch:'Muroor',channel:'Online Web',s24:9704,s25:6438,s26:0,o24:174,o25:131,o26:0},
+{m:6,month:'Jun',branch:'Muroor',channel:'Online Web',s24:10966,s25:6600,s26:0,o24:191,o25:120,o26:0},
+{m:7,month:'Jul',branch:'Muroor',channel:'Online Web',s24:9358,s25:6127,s26:0,o24:176,o25:125,o26:0},
+{m:8,month:'Aug',branch:'Muroor',channel:'Online Web',s24:8392,s25:5884,s26:0,o24:157,o25:116,o26:0},
+{m:9,month:'Sep',branch:'Muroor',channel:'Online Web',s24:7504,s25:6668,s26:0,o24:146,o25:119,o26:0},
+{m:10,month:'Oct',branch:'Muroor',channel:'Online Web',s24:5777,s25:5435,s26:0,o24:146,o25:89,o26:0},
+{m:11,month:'Nov',branch:'Muroor',channel:'Online Web',s24:6152,s25:0,s26:0,o24:116,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Muroor',channel:'Online Web',s24:8064,s25:0,s26:0,o24:119,o25:0,o26:0},
 
 // Electra — all zeros (12 months each channel)
-{m:1,month:'Jan',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:1,month:'Jan',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Electra',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:1,month:'Jan',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:10,month:'Oct',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:11,month:'Nov',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:1,month:'Jan',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:10,month:'Oct',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:11,month:'Nov',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
 
 // Al Barsha — Self Delivery
-{m:1,month:'Jan',branch:'Al Barsha',channel:'Self Delivery',s24:30120,s25:55752,o24:802,o25:1726},
-{m:2,month:'Feb',branch:'Al Barsha',channel:'Self Delivery',s24:33556,s25:51699,o24:928,o25:1527},
-{m:3,month:'Mar',branch:'Al Barsha',channel:'Self Delivery',s24:30722,s25:42075,o24:928,o25:1427},
-{m:4,month:'Apr',branch:'Al Barsha',channel:'Self Delivery',s24:40737,s25:61422,o24:1173,o25:1816},
-{m:5,month:'May',branch:'Al Barsha',channel:'Self Delivery',s24:50460,s25:36988,o24:1487,o25:881},
-{m:6,month:'Jun',branch:'Al Barsha',channel:'Self Delivery',s24:48778,s25:41436,o24:1488,o25:891},
-{m:7,month:'Jul',branch:'Al Barsha',channel:'Self Delivery',s24:56252,s25:44627,o24:1740,o25:1007},
-{m:8,month:'Aug',branch:'Al Barsha',channel:'Self Delivery',s24:54008,s25:49296,o24:1813,o25:901},
-{m:9,month:'Sep',branch:'Al Barsha',channel:'Self Delivery',s24:54921,s25:43361,o24:1749,o25:879},
-{m:10,month:'Oct',branch:'Al Barsha',channel:'Self Delivery',s24:55783,s25:44819,o24:1894,o25:850},
-{m:11,month:'Nov',branch:'Al Barsha',channel:'Self Delivery',s24:44274,s25:0,o24:1595,o25:0},
-{m:12,month:'Dec',branch:'Al Barsha',channel:'Self Delivery',s24:48203,s25:0,o24:1424,o25:0},
+{m:1,month:'Jan',branch:'Al Barsha',channel:'Self Delivery',s24:30120,s25:55752,s26:0,o24:802,o25:1726,o26:0},
+{m:2,month:'Feb',branch:'Al Barsha',channel:'Self Delivery',s24:33556,s25:51699,s26:0,o24:928,o25:1527,o26:0},
+{m:3,month:'Mar',branch:'Al Barsha',channel:'Self Delivery',s24:30722,s25:42075,s26:0,o24:928,o25:1427,o26:0},
+{m:4,month:'Apr',branch:'Al Barsha',channel:'Self Delivery',s24:40737,s25:61422,s26:0,o24:1173,o25:1816,o26:0},
+{m:5,month:'May',branch:'Al Barsha',channel:'Self Delivery',s24:50460,s25:36988,s26:0,o24:1487,o25:881,o26:0},
+{m:6,month:'Jun',branch:'Al Barsha',channel:'Self Delivery',s24:48778,s25:41436,s26:0,o24:1488,o25:891,o26:0},
+{m:7,month:'Jul',branch:'Al Barsha',channel:'Self Delivery',s24:56252,s25:44627,s26:0,o24:1740,o25:1007,o26:0},
+{m:8,month:'Aug',branch:'Al Barsha',channel:'Self Delivery',s24:54008,s25:49296,s26:0,o24:1813,o25:901,o26:0},
+{m:9,month:'Sep',branch:'Al Barsha',channel:'Self Delivery',s24:54921,s25:43361,s26:0,o24:1749,o25:879,o26:0},
+{m:10,month:'Oct',branch:'Al Barsha',channel:'Self Delivery',s24:55783,s25:44819,s26:0,o24:1894,o25:850,o26:0},
+{m:11,month:'Nov',branch:'Al Barsha',channel:'Self Delivery',s24:44274,s25:0,s26:0,o24:1595,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Barsha',channel:'Self Delivery',s24:48203,s25:0,s26:0,o24:1424,o25:0,o26:0},
 // Al Barsha — Online Web
-{m:1,month:'Jan',branch:'Al Barsha',channel:'Online Web',s24:19348,s25:8325,o24:365,o25:156},
-{m:2,month:'Feb',branch:'Al Barsha',channel:'Online Web',s24:16597,s25:8977,o24:304,o25:178},
-{m:3,month:'Mar',branch:'Al Barsha',channel:'Online Web',s24:14043,s25:4816,o24:243,o25:98},
-{m:4,month:'Apr',branch:'Al Barsha',channel:'Online Web',s24:12546,s25:9647,o24:221,o25:181},
-{m:5,month:'May',branch:'Al Barsha',channel:'Online Web',s24:16921,s25:9039,o24:290,o25:176},
-{m:6,month:'Jun',branch:'Al Barsha',channel:'Online Web',s24:17351,s25:7877,o24:299,o25:161},
-{m:7,month:'Jul',branch:'Al Barsha',channel:'Online Web',s24:14681,s25:8453,o24:276,o25:173},
-{m:8,month:'Aug',branch:'Al Barsha',channel:'Online Web',s24:13840,s25:7404,o24:250,o25:159},
-{m:9,month:'Sep',branch:'Al Barsha',channel:'Online Web',s24:12385,s25:8490,o24:203,o25:167},
-{m:10,month:'Oct',branch:'Al Barsha',channel:'Online Web',s24:10663,s25:7406,o24:178,o25:122},
-{m:11,month:'Nov',branch:'Al Barsha',channel:'Online Web',s24:12048,s25:0,o24:214,o25:0},
-{m:12,month:'Dec',branch:'Al Barsha',channel:'Online Web',s24:9084,s25:0,o24:171,o25:0},
+{m:1,month:'Jan',branch:'Al Barsha',channel:'Online Web',s24:19348,s25:8325,s26:0,o24:365,o25:156,o26:0},
+{m:2,month:'Feb',branch:'Al Barsha',channel:'Online Web',s24:16597,s25:8977,s26:0,o24:304,o25:178,o26:0},
+{m:3,month:'Mar',branch:'Al Barsha',channel:'Online Web',s24:14043,s25:4816,s26:0,o24:243,o25:98,o26:0},
+{m:4,month:'Apr',branch:'Al Barsha',channel:'Online Web',s24:12546,s25:9647,s26:0,o24:221,o25:181,o26:0},
+{m:5,month:'May',branch:'Al Barsha',channel:'Online Web',s24:16921,s25:9039,s26:0,o24:290,o25:176,o26:0},
+{m:6,month:'Jun',branch:'Al Barsha',channel:'Online Web',s24:17351,s25:7877,s26:0,o24:299,o25:161,o26:0},
+{m:7,month:'Jul',branch:'Al Barsha',channel:'Online Web',s24:14681,s25:8453,s26:0,o24:276,o25:173,o26:0},
+{m:8,month:'Aug',branch:'Al Barsha',channel:'Online Web',s24:13840,s25:7404,s26:0,o24:250,o25:159,o26:0},
+{m:9,month:'Sep',branch:'Al Barsha',channel:'Online Web',s24:12385,s25:8490,s26:0,o24:203,o25:167,o26:0},
+{m:10,month:'Oct',branch:'Al Barsha',channel:'Online Web',s24:10663,s25:7406,s26:0,o24:178,o25:122,o26:0},
+{m:11,month:'Nov',branch:'Al Barsha',channel:'Online Web',s24:12048,s25:0,s26:0,o24:214,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Barsha',channel:'Online Web',s24:9084,s25:0,s26:0,o24:171,o25:0,o26:0},
 
 // Al Satwa — Self Delivery
-{m:1,month:'Jan',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:26849,o24:0,o25:818},
-{m:2,month:'Feb',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:24349,o24:0,o25:719},
-{m:3,month:'Mar',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:21934,o24:0,o25:645},
-{m:4,month:'Apr',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:29154,o24:0,o25:881},
-{m:5,month:'May',branch:'Al Satwa',channel:'Self Delivery',s24:22337,s25:20631,o24:555,o25:506},
-{m:6,month:'Jun',branch:'Al Satwa',channel:'Self Delivery',s24:26665,s25:21005,o24:684,o25:463},
-{m:7,month:'Jul',branch:'Al Satwa',channel:'Self Delivery',s24:27671,s25:24685,o24:795,o25:528},
-{m:8,month:'Aug',branch:'Al Satwa',channel:'Self Delivery',s24:34732,s25:22476,o24:965,o25:492},
-{m:9,month:'Sep',branch:'Al Satwa',channel:'Self Delivery',s24:27068,s25:23066,o24:799,o25:495},
-{m:10,month:'Oct',branch:'Al Satwa',channel:'Self Delivery',s24:29957,s25:12773,o24:831,o25:293},
-{m:11,month:'Nov',branch:'Al Satwa',channel:'Self Delivery',s24:25687,s25:0,o24:765,o25:0},
-{m:12,month:'Dec',branch:'Al Satwa',channel:'Self Delivery',s24:29521,s25:0,o24:768,o25:0},
+{m:1,month:'Jan',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:26849,s26:0,o24:0,o25:818,o26:0},
+{m:2,month:'Feb',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:24349,s26:0,o24:0,o25:719,o26:0},
+{m:3,month:'Mar',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:21934,s26:0,o24:0,o25:645,o26:0},
+{m:4,month:'Apr',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:29154,s26:0,o24:0,o25:881,o26:0},
+{m:5,month:'May',branch:'Al Satwa',channel:'Self Delivery',s24:22337,s25:20631,s26:0,o24:555,o25:506,o26:0},
+{m:6,month:'Jun',branch:'Al Satwa',channel:'Self Delivery',s24:26665,s25:21005,s26:0,o24:684,o25:463,o26:0},
+{m:7,month:'Jul',branch:'Al Satwa',channel:'Self Delivery',s24:27671,s25:24685,s26:0,o24:795,o25:528,o26:0},
+{m:8,month:'Aug',branch:'Al Satwa',channel:'Self Delivery',s24:34732,s25:22476,s26:0,o24:965,o25:492,o26:0},
+{m:9,month:'Sep',branch:'Al Satwa',channel:'Self Delivery',s24:27068,s25:23066,s26:0,o24:799,o25:495,o26:0},
+{m:10,month:'Oct',branch:'Al Satwa',channel:'Self Delivery',s24:29957,s25:12773,s26:0,o24:831,o25:293,o26:0},
+{m:11,month:'Nov',branch:'Al Satwa',channel:'Self Delivery',s24:25687,s25:0,s26:0,o24:765,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Satwa',channel:'Self Delivery',s24:29521,s25:0,s26:0,o24:768,o25:0,o26:0},
 // Al Satwa — Online Web
-{m:1,month:'Jan',branch:'Al Satwa',channel:'Online Web',s24:0,s25:7572,o24:0,o25:210},
-{m:2,month:'Feb',branch:'Al Satwa',channel:'Online Web',s24:0,s25:9979,o24:0,o25:240},
-{m:3,month:'Mar',branch:'Al Satwa',channel:'Online Web',s24:0,s25:5832,o24:0,o25:134},
-{m:4,month:'Apr',branch:'Al Satwa',channel:'Online Web',s24:0,s25:11509,o24:0,o25:283},
-{m:5,month:'May',branch:'Al Satwa',channel:'Online Web',s24:569,s25:13388,o24:15,o25:348},
-{m:6,month:'Jun',branch:'Al Satwa',channel:'Online Web',s24:6303,s25:13815,o24:148,o25:343},
-{m:7,month:'Jul',branch:'Al Satwa',channel:'Online Web',s24:9685,s25:18083,o24:234,o25:484},
-{m:8,month:'Aug',branch:'Al Satwa',channel:'Online Web',s24:11818,s25:14903,o24:299,o25:387},
-{m:9,month:'Sep',branch:'Al Satwa',channel:'Online Web',s24:8026,s25:15232,o24:177,o25:376},
-{m:10,month:'Oct',branch:'Al Satwa',channel:'Online Web',s24:9119,s25:11183,o24:225,o25:288},
-{m:11,month:'Nov',branch:'Al Satwa',channel:'Online Web',s24:8731,s25:0,o24:216,o25:0},
-{m:12,month:'Dec',branch:'Al Satwa',channel:'Online Web',s24:9441,s25:0,o24:216,o25:0},
+{m:1,month:'Jan',branch:'Al Satwa',channel:'Online Web',s24:0,s25:7572,s26:0,o24:0,o25:210,o26:0},
+{m:2,month:'Feb',branch:'Al Satwa',channel:'Online Web',s24:0,s25:9979,s26:0,o24:0,o25:240,o26:0},
+{m:3,month:'Mar',branch:'Al Satwa',channel:'Online Web',s24:0,s25:5832,s26:0,o24:0,o25:134,o26:0},
+{m:4,month:'Apr',branch:'Al Satwa',channel:'Online Web',s24:0,s25:11509,s26:0,o24:0,o25:283,o26:0},
+{m:5,month:'May',branch:'Al Satwa',channel:'Online Web',s24:569,s25:13388,s26:0,o24:15,o25:348,o26:0},
+{m:6,month:'Jun',branch:'Al Satwa',channel:'Online Web',s24:6303,s25:13815,s26:0,o24:148,o25:343,o26:0},
+{m:7,month:'Jul',branch:'Al Satwa',channel:'Online Web',s24:9685,s25:18083,s26:0,o24:234,o25:484,o26:0},
+{m:8,month:'Aug',branch:'Al Satwa',channel:'Online Web',s24:11818,s25:14903,s26:0,o24:299,o25:387,o26:0},
+{m:9,month:'Sep',branch:'Al Satwa',channel:'Online Web',s24:8026,s25:15232,s26:0,o24:177,o25:376,o26:0},
+{m:10,month:'Oct',branch:'Al Satwa',channel:'Online Web',s24:9119,s25:11183,s26:0,o24:225,o25:288,o26:0},
+{m:11,month:'Nov',branch:'Al Satwa',channel:'Online Web',s24:8731,s25:0,s26:0,o24:216,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Satwa',channel:'Online Web',s24:9441,s25:0,s26:0,o24:216,o25:0,o26:0},
 
 // Al Rigga — Self Delivery
-{m:1,month:'Jan',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:1993,o24:0,o25:45},
-{m:10,month:'Oct',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:14634.9,o24:0,o25:332},
-{m:11,month:'Nov',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
+{m:1,month:'Jan',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:1993,s26:0,o24:0,o25:45,o26:0},
+{m:10,month:'Oct',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:14634.9,s26:0,o24:0,o25:332,o26:0},
+{m:11,month:'Nov',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
 // Al Rigga — Online Web
-{m:1,month:'Jan',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Al Rigga',channel:'Online Web',s24:0,s25:2076,o24:0,o25:62},
-{m:11,month:'Nov',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
+{m:1,month:'Jan',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:10,month:'Oct',branch:'Al Rigga',channel:'Online Web',s24:0,s25:2076,s26:0,o24:0,o25:62,o26:0},
+{m:11,month:'Nov',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
 
 // Sharja — all zeros
-{m:1,month:'Jan',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,o24:0,o25:0},
-{m:1,month:'Jan',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:2,month:'Feb',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:3,month:'Mar',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:4,month:'Apr',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:5,month:'May',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:6,month:'Jun',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:7,month:'Jul',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:8,month:'Aug',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:9,month:'Sep',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:10,month:'Oct',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:11,month:'Nov',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0},
-{m:12,month:'Dec',branch:'Sharja',channel:'Online Web',s24:0,s25:0,o24:0,o25:0}
+{m:1,month:'Jan',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:10,month:'Oct',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:11,month:'Nov',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:1,month:'Jan',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:2,month:'Feb',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:3,month:'Mar',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:4,month:'Apr',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:5,month:'May',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:6,month:'Jun',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:7,month:'Jul',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:8,month:'Aug',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:9,month:'Sep',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:10,month:'Oct',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:11,month:'Nov',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
+{m:12,month:'Dec',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0}
 ];
 
 // ======= Helper functions =======
@@ -510,12 +532,15 @@ function buildTable(filterBranch, filterChannel, searchTerm = ''){
       <th>Channel</th>
       <th>Sales 2024</th>
       <th>Sales 2025</th>
+      <th>Sales 2026</th>
       <th>Δ Sales</th>
       <th>Orders 2024</th>
       <th>Orders 2025</th>
+      <th>Orders 2026</th>
       <th>Δ Orders</th>
       <th>AOV 2024</th>
       <th>AOV 2025</th>
+      <th>AOV 2026</th>
       <th>Actions</th>
     </tr>
   `;
@@ -533,12 +558,19 @@ function buildTable(filterBranch, filterChannel, searchTerm = ''){
   }
   
   const tbody = rows.map((r, index) => {
-    const salesDiff = r.s25 - r.s24;
-    const ordersDiff = r.o25 - r.o24;
-    const salesDiffClass = salesDiff > 0 ? 'green' : salesDiff < 0 ? 'red' : '';
-    const ordersDiffClass = ordersDiff > 0 ? 'green' : ordersDiff < 0 ? 'red' : '';
+    const salesDiff25 = r.s25 - r.s24;
+    const salesDiff26 = r.s26 - r.s25;
+    const ordersDiff25 = r.o25 - r.o24;
+    const ordersDiff26 = r.o26 - r.o25;
+    
+    const salesDiffClass25 = salesDiff25 > 0 ? 'green' : salesDiff25 < 0 ? 'red' : '';
+    const salesDiffClass26 = salesDiff26 > 0 ? 'green' : salesDiff26 < 0 ? 'red' : '';
+    const ordersDiffClass25 = ordersDiff25 > 0 ? 'green' : ordersDiff25 < 0 ? 'red' : '';
+    const ordersDiffClass26 = ordersDiff26 > 0 ? 'green' : ordersDiff26 < 0 ? 'red' : '';
+    
     const aov24 = r.o24 ? fmtCurrency(r.s24/r.o24) : '-';
     const aov25 = r.o25 ? fmtCurrency(r.s25/r.o25) : '-';
+    const aov26 = r.o26 ? fmtCurrency(r.s26/r.o26) : '-';
     
     return `
       <tr data-index="${index}">
@@ -547,12 +579,15 @@ function buildTable(filterBranch, filterChannel, searchTerm = ''){
         <td>${r.channel}</td>
         <td>${fmtCurrency(r.s24)}</td>
         <td>${fmtCurrency(r.s25)}</td>
-        <td class="${salesDiffClass}">${salesDiff > 0 ? '+' : ''}${fmtCurrency(salesDiff)}</td>
+        <td>${fmtCurrency(r.s26)}</td>
+        <td class="${salesDiffClass26}">${salesDiff26 > 0 ? '+' : ''}${fmtCurrency(salesDiff26)}</td>
         <td>${fmtNumber(r.o24)}</td>
         <td>${fmtNumber(r.o25)}</td>
-        <td class="${ordersDiffClass}">${ordersDiff > 0 ? '+' : ''}${fmtNumber(ordersDiff)}</td>
+        <td>${fmtNumber(r.o26)}</td>
+        <td class="${ordersDiffClass26}">${ordersDiff26 > 0 ? '+' : ''}${fmtNumber(ordersDiff26)}</td>
         <td>${aov24}</td>
         <td>${aov25}</td>
+        <td>${aov26}</td>
         <td>
           <button class="edit-btn" onclick="editRow(${index})">Edit</button>
           <button class="delete-btn" onclick="deleteRow(${index})">Delete</button>
@@ -570,31 +605,44 @@ function updateKPIs(filterBranch, filterChannel){
   const rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
   const totalS24 = sum(rows,'s24');
   const totalS25 = sum(rows,'s25');
+  const totalS26 = sum(rows,'s26');
   const totalO24 = sum(rows,'o24');
   const totalO25 = sum(rows,'o25');
+  const totalO26 = sum(rows,'o26');
   
   document.getElementById('tot24').textContent = fmtCurrency(totalS24);
   document.getElementById('tot25').textContent = fmtCurrency(totalS25);
+  document.getElementById('tot26').textContent = fmtCurrency(totalS26);
   document.getElementById('ord24').textContent = fmtNumber(totalO24);
   document.getElementById('ord25').textContent = fmtNumber(totalO25);
+  document.getElementById('ord26').textContent = fmtNumber(totalO26);
   
   // Calculate growth rates
   const salesGrowth = calculateGrowth(totalS25, totalS24);
   const orderGrowth = calculateGrowth(totalO25, totalO24);
+  const salesGrowth26 = calculateGrowth(totalS26, totalS25);
+  const orderGrowth26 = calculateGrowth(totalO26, totalO25);
+  
   document.getElementById('salesGrowth').textContent = `${salesGrowth}%`;
   document.getElementById('orderGrowth').textContent = `${orderGrowth}%`;
+  document.getElementById('salesGrowth26').textContent = `${salesGrowth26}%`;
+  document.getElementById('orderGrowth26').textContent = `${orderGrowth26}%`;
   
   // Calculate average AOV
   const avgAOV24 = totalO24 > 0 ? totalS24 / totalO24 : 0;
   const avgAOV25 = totalO25 > 0 ? totalS25 / totalO25 : 0;
+  const avgAOV26 = totalO26 > 0 ? totalS26 / totalO26 : 0;
+  
   document.getElementById('avgAOV24').textContent = fmtCurrency(avgAOV24);
-  document.getElementById('avgAOV25').textContent = fmtCurrency(avgAOV25);
+  document.getElementById('avgAOV26').textContent = fmtCurrency(avgAOV26);
   
   // Color code KPIs
   document.getElementById('tot24').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
   document.getElementById('tot25').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
+  document.getElementById('tot26').className = salesGrowth26 > 0 ? 'green' : salesGrowth26 < 0 ? 'red' : '';
   document.getElementById('ord24').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
   document.getElementById('ord25').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
+  document.getElementById('ord26').className = orderGrowth26 > 0 ? 'green' : orderGrowth26 < 0 ? 'red' : '';
   
   // Update scorecards
   updateScorecards(filterBranch, filterChannel);
@@ -608,7 +656,7 @@ function updateScorecards(filterBranch, filterChannel) {
   const branchSales = {};
   rows.forEach(r => {
     if (!branchSales[r.branch]) branchSales[r.branch] = 0;
-    branchSales[r.branch] += r.s25;
+    branchSales[r.branch] += r.s26;
   });
   
   const bestBranch = Object.keys(branchSales).reduce((a, b) => 
@@ -618,15 +666,16 @@ function updateScorecards(filterBranch, filterChannel) {
   // Find growth leader
   const branchGrowth = {};
   rows.forEach(r => {
-    if (!branchGrowth[r.branch]) branchGrowth[r.branch] = {s24: 0, s25: 0};
+    if (!branchGrowth[r.branch]) branchGrowth[r.branch] = {s24: 0, s25: 0, s26: 0};
     branchGrowth[r.branch].s24 += r.s24;
     branchGrowth[r.branch].s25 += r.s25;
+    branchGrowth[r.branch].s26 += r.s26;
   });
   
   let maxGrowth = 0;
   let growthLeader = '-';
   Object.keys(branchGrowth).forEach(branch => {
-    const growth = calculateGrowth(branchGrowth[branch].s25, branchGrowth[branch].s24);
+    const growth = calculateGrowth(branchGrowth[branch].s26, branchGrowth[branch].s25);
     if (growth > maxGrowth) {
       maxGrowth = growth;
       growthLeader = branch;
@@ -638,8 +687,8 @@ function updateScorecards(filterBranch, filterChannel) {
   const branchAOV = {};
   rows.forEach(r => {
     if (!branchAOV[r.branch]) branchAOV[r.branch] = {sales: 0, orders: 0};
-    branchAOV[r.branch].sales += r.s25;
-    branchAOV[r.branch].orders += r.o25;
+    branchAOV[r.branch].sales += r.s26;
+    branchAOV[r.branch].orders += r.o26;
   });
   
   let bestAOV = 0;
@@ -653,6 +702,20 @@ function updateScorecards(filterBranch, filterChannel) {
     }
   });
   document.getElementById('efficiencyChamp').textContent = efficiencyChamp;
+  
+  // Calculate 2026 potential (projected growth)
+  const totalSales2024 = sum(rows, 's24');
+  const totalSales2025 = sum(rows, 's25');
+  const totalSales2026 = sum(rows, 's26');
+  
+  const avgGrowthRate = calculateGrowth(totalSales2025, totalSales2024);
+  const projectedGrowth = calculateGrowth(totalSales2026, totalSales2025);
+  
+  let potential = 'Stable';
+  if (projectedGrowth > avgGrowthRate + 5) potential = 'High';
+  else if (projectedGrowth < avgGrowthRate - 5) potential = 'Low';
+  
+  document.getElementById('potential2026').textContent = potential;
 }
 
 // ======= Charts =======
@@ -661,6 +724,7 @@ function renderCharts(filterBranch, filterChannel, metric){
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const monthly24 = Array(12).fill(0);
   const monthly25 = Array(12).fill(0);
+  const monthly26 = Array(12).fill(0);
 
   DATA_ROWS.forEach(r=>{
     if((filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel)){
@@ -668,9 +732,11 @@ function renderCharts(filterBranch, filterChannel, metric){
       if(metric==='sales'){ 
         monthly24[idx] += Number(r.s24)||0; 
         monthly25[idx] += Number(r.s25)||0; 
+        monthly26[idx] += Number(r.s26)||0; 
       } else { 
         monthly24[idx] += Number(r.o24)||0; 
         monthly25[idx] += Number(r.o25)||0; 
+        monthly26[idx] += Number(r.o26)||0; 
       }
     }
   });
@@ -705,6 +771,14 @@ function renderCharts(filterBranch, filterChannel, metric){
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           tension: 0.3,
           fill: true
+        },
+        {
+          label: metric === 'sales' ? 'Sales 2026' : 'Orders 2026',
+          data: monthly26,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.3,
+          fill: true
         }
       ]
     },
@@ -737,10 +811,10 @@ function renderCharts(filterBranch, filterChannel, metric){
   const ctx2 = document.getElementById('stackChart');
   const branchesList = (filterBranch==='all')? unique(DATA_ROWS,'branch'):[filterBranch];
   const selfDeliveryData = branchesList.map(b => 
-    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Self Delivery'), metric === 'sales' ? 's25' : 'o25')
+    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Self Delivery'), metric === 'sales' ? 's26' : 'o26')
   );
   const onlineWebData = branchesList.map(b => 
-    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Online Web'), metric === 'sales' ? 's25' : 'o25')
+    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Online Web'), metric === 'sales' ? 's26' : 'o26')
   );
   
   stackChart = new Chart(ctx2, {
@@ -769,7 +843,7 @@ function renderCharts(filterBranch, filterChannel, metric){
         },
         title: {
           display: true,
-          text: metric === 'sales' ? 'Sales by Channel (2025)' : 'Orders by Channel (2025)'
+          text: metric === 'sales' ? 'Sales by Channel (2026)' : 'Orders by Channel (2026)'
         }
       },
       scales: {
@@ -789,12 +863,15 @@ function renderCharts(filterBranch, filterChannel, metric){
   const ctx3 = document.getElementById('branchChart');
   const branchSales2024 = {};
   const branchSales2025 = {};
+  const branchSales2026 = {};
   
   DATA_ROWS.forEach(r => {
     if (!branchSales2024[r.branch]) branchSales2024[r.branch] = 0;
     if (!branchSales2025[r.branch]) branchSales2025[r.branch] = 0;
+    if (!branchSales2026[r.branch]) branchSales2026[r.branch] = 0;
     branchSales2024[r.branch] += r.s24;
     branchSales2025[r.branch] += r.s25;
+    branchSales2026[r.branch] += r.s26;
   });
   
   branchChart = new Chart(ctx3, {
@@ -811,6 +888,11 @@ function renderCharts(filterBranch, filterChannel, metric){
           label: '2025',
           data: Object.values(branchSales2025),
           backgroundColor: '#10b981'
+        },
+        {
+          label: '2026',
+          data: Object.values(branchSales2026),
+          backgroundColor: '#f59e0b'
         }
       ]
     },
@@ -838,17 +920,17 @@ function renderCharts(filterBranch, filterChannel, metric){
   
   // Channel Distribution Chart
   const ctx4 = document.getElementById('channelChart');
-  const channelSales2025 = {
-    'Self Delivery': sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's25'),
-    'Online Web': sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's25')
+  const channelSales2026 = {
+    'Self Delivery': sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's26'),
+    'Online Web': sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's26')
   };
   
   channelChart = new Chart(ctx4, {
     type: 'doughnut',
     data: {
-      labels: Object.keys(channelSales2025),
+      labels: Object.keys(channelSales2026),
       datasets: [{
-        data: Object.values(channelSales2025),
+        data: Object.values(channelSales2026),
         backgroundColor: ['#4f46e5', '#06b6d4']
       }]
     },
@@ -871,10 +953,12 @@ function renderCharts(filterBranch, filterChannel, metric){
   const ctx5 = document.getElementById('monthlyChart');
   const monthlyTrend2024 = {};
   const monthlyTrend2025 = {};
+  const monthlyTrend2026 = {};
   
   months.forEach(month => {
     monthlyTrend2024[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's24');
     monthlyTrend2025[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's25');
+    monthlyTrend2026[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's26');
   });
   
   monthlyChart = new Chart(ctx5, {
@@ -894,6 +978,13 @@ function renderCharts(filterBranch, filterChannel, metric){
           data: Object.values(monthlyTrend2025),
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3
+        },
+        {
+          label: '2026',
+          data: Object.values(monthlyTrend2026),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
           tension: 0.3
         }
       ]
@@ -922,14 +1013,22 @@ function renderCharts(filterBranch, filterChannel, metric){
   
   // Year-over-Year Comparison Chart
   const ctx6 = document.getElementById('yoyChart');
-  const yoyData = [];
+  const yoyData25 = [];
+  const yoyData26 = [];
   const yoyLabels = [];
   
   DATA_ROWS.forEach(r => {
     if (r.s25 > 0) {
-      const growth = calculateGrowth(r.s25, r.s24);
+      const growth25 = calculateGrowth(r.s25, r.s24);
       yoyLabels.push(`${r.branch} - ${r.month}`);
-      yoyData.push(growth);
+      yoyData25.push(growth25);
+    }
+  });
+  
+  DATA_ROWS.forEach(r => {
+    if (r.s26 > 0) {
+      const growth26 = calculateGrowth(r.s26, r.s25);
+      yoyData26.push(growth26);
     }
   });
   
@@ -937,11 +1036,18 @@ function renderCharts(filterBranch, filterChannel, metric){
     type: 'bar',
     data: {
       labels: yoyLabels,
-      datasets: [{
-        label: 'YoY Growth %',
-        data: yoyData,
-        backgroundColor: yoyData.map(val => val > 0 ? '#10b981' : '#ef4444')
-      }]
+      datasets: [
+        {
+          label: 'YoY Growth 2025 (%)',
+          data: yoyData25,
+          backgroundColor: '#10b981'
+        },
+        {
+          label: 'YoY Growth 2026 (%)',
+          data: yoyData26,
+          backgroundColor: '#f59e0b'
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -973,33 +1079,40 @@ function generateInsights() {
   // Calculate overall performance
   const totalSales2024 = sum(DATA_ROWS, 's24');
   const totalSales2025 = sum(DATA_ROWS, 's25');
+  const totalSales2026 = sum(DATA_ROWS, 's26');
   const salesGrowth = calculateGrowth(totalSales2025, totalSales2024);
+  const salesGrowth26 = calculateGrowth(totalSales2026, totalSales2025);
   
-  if (salesGrowth > 0) {
+  if (salesGrowth26 > salesGrowth) {
     insights.push({
-      title: 'Positive Sales Growth',
-      description: `Overall sales increased by ${salesGrowth}% from 2024 to 2025, indicating strong business performance.`
+      title: 'Accelerating Growth',
+      description: `Sales growth increased from ${salesGrowth}% in 2025 to ${salesGrowth26}% in 2026, indicating positive business momentum.`
+    });
+  } else if (salesGrowth26 > 0) {
+    insights.push({
+      title: 'Positive Growth',
+      description: `Sales grew by ${salesGrowth26}% in 2026, continuing the positive trend from previous years.`
     });
   } else {
     insights.push({
       title: 'Sales Decline',
-      description: `Overall sales decreased by ${Math.abs(salesGrowth)}% from 2024 to 2025. Review marketing strategies and operational efficiency.`
+      description: `Sales decreased by ${Math.abs(salesGrowth26)}% in 2026. Review marketing strategies and operational efficiency.`
     });
   }
   
   // Channel performance analysis
-  const selfDeliverySales2025 = sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's25');
-  const onlineWebSales2025 = sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's25');
+  const selfDeliverySales2026 = sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's26');
+  const onlineWebSales2026 = sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's26');
   
-  if (onlineWebSales2025 > selfDeliverySales2025) {
+  if (onlineWebSales2026 > selfDeliverySales2026) {
     insights.push({
       title: 'Online Web Dominance',
-      description: 'Online Web channel outperformed Self Delivery in 2025. Consider expanding online presence and digital marketing efforts.'
+      description: 'Online Web channel outperformed Self Delivery in 2026. Consider expanding online presence and digital marketing efforts.'
     });
   } else {
     insights.push({
       title: 'Self Delivery Strength',
-      description: 'Self Delivery channel remains stronger. Focus on optimizing in-store experience and customer service.'
+      description: 'Self Delivery channel remains stronger in 2026. Focus on optimizing in-store experience and customer service.'
     });
   }
   
@@ -1007,7 +1120,7 @@ function generateInsights() {
   const branchPerformance = {};
   DATA_ROWS.forEach(r => {
     if (!branchPerformance[r.branch]) branchPerformance[r.branch] = {sales: 0, growth: 0};
-    branchPerformance[r.branch].sales += r.s25;
+    branchPerformance[r.branch].sales += r.s26;
   });
   
   const topBranch = Object.keys(branchPerformance).reduce((a, b) => 
@@ -1015,13 +1128,13 @@ function generateInsights() {
   
   insights.push({
     title: 'Top Performing Branch',
-    description: `${topBranch} leads in sales performance. Analyze best practices and consider replicating strategies across other branches.`
+    description: `${topBranch} leads in 2026 sales performance. Analyze best practices and consider replicating strategies across other branches.`
   });
   
   // Seasonality analysis
   const monthlyPerformance = {};
   months.forEach(month => {
-    monthlyPerformance[month] = sum(DATA_ROWS.filter(r => r.month === month), 's25');
+    monthlyPerformance[month] = sum(DATA_ROWS.filter(r => r.month === month), 's26');
   });
   
   const bestMonth = Object.keys(monthlyPerformance).reduce((a, b) => 
@@ -1029,7 +1142,7 @@ function generateInsights() {
   
   insights.push({
     title: 'Peak Performance Month',
-    description: `${bestMonth} shows the highest sales volume. Plan targeted promotions and resource allocation for this period.`
+    description: `${bestMonth} shows the highest sales volume in 2026. Plan targeted promotions and resource allocation for this period.`
   });
   
   // Render insights
@@ -1079,11 +1192,12 @@ refresh();
 // ======= Export CSV =======
 document.getElementById('exportCsv').onclick = function(){
   const rows = DATA_ROWS;
-  let csv = 'Month,Branch,Channel,Sales2024,Sales2025,Orders2024,Orders2025,AOV2024,AOV2025\n';
+  let csv = 'Month,Branch,Channel,Sales2024,Sales2025,Sales2026,Orders2024,Orders2025,Orders2026,AOV2024,AOV2025,AOV2026\n';
   rows.forEach(r=>{
     const aov24 = r.o24 ? (r.s24/r.o24).toFixed(2) : '';
     const aov25 = r.o25 ? (r.s25/r.o25).toFixed(2) : '';
-    csv += `${r.month},${r.branch},${r.channel},${r.s24},${r.s25},${r.o24},${r.o25},${aov24},${aov25}\n`;
+    const aov26 = r.o26 ? (r.s26/r.o26).toFixed(2) : '';
+    csv += `${r.month},${r.branch},${r.channel},${r.s24},${r.s25},${r.s26},${r.o24},${r.o25},${r.o26},${aov24},${aov25},${aov26}\n`;
   });
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob); 
@@ -1137,8 +1251,10 @@ function editRow(index) {
   document.getElementById('newChannel').value = row.channel;
   document.getElementById('newS24').value = row.s24;
   document.getElementById('newS25').value = row.s25;
+  document.getElementById('newS26').value = row.s26;
   document.getElementById('newO24').value = row.o24;
   document.getElementById('newO25').value = row.o25;
+  document.getElementById('newO26').value = row.o26;
   
   // Change button to update
   const addBtn = document.getElementById('addDataBtn');
@@ -1158,10 +1274,12 @@ function updateRow(index) {
   const channel = document.getElementById('newChannel').value;
   const s24 = Number(document.getElementById('newS24').value);
   const s25 = Number(document.getElementById('newS25').value);
+  const s26 = Number(document.getElementById('newS26').value);
   const o24 = Number(document.getElementById('newO24').value);
   const o25 = Number(document.getElementById('newO25').value);
+  const o26 = Number(document.getElementById('newO26').value);
   
-  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(o24) || isNaN(o25)) {
+  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(s26) || isNaN(o24) || isNaN(o25) || isNaN(o26)) {
     alert('Please fill all fields with valid values');
     return;
   }
@@ -1174,8 +1292,10 @@ function updateRow(index) {
     channel,
     s24,
     s25,
+    s26,
     o24,
-    o25
+    o25,
+    o26
   };
   
   // Reset form
@@ -1184,8 +1304,10 @@ function updateRow(index) {
   document.getElementById('newChannel').value = '';
   document.getElementById('newS24').value = '';
   document.getElementById('newS25').value = '';
+  document.getElementById('newS26').value = '';
   document.getElementById('newO24').value = '';
   document.getElementById('newO25').value = '';
+  document.getElementById('newO26').value = '';
   
   // Reset button
   const addBtn = document.getElementById('addDataBtn');
@@ -1213,10 +1335,12 @@ function addData() {
   const channel = document.getElementById('newChannel').value;
   const s24 = Number(document.getElementById('newS24').value);
   const s25 = Number(document.getElementById('newS25').value);
+  const s26 = Number(document.getElementById('newS26').value);
   const o24 = Number(document.getElementById('newO24').value);
   const o25 = Number(document.getElementById('newO25').value);
+  const o26 = Number(document.getElementById('newO26').value);
   
-  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(o24) || isNaN(o25)) {
+  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(s26) || isNaN(o24) || isNaN(o25) || isNaN(o26)) {
     alert('Please fill all fields with valid values');
     return;
   }
@@ -1229,8 +1353,10 @@ function addData() {
     channel,
     s24,
     s25,
+    s26,
     o24,
-    o25
+    o25,
+    o26
   });
   
   // Update branches list if new branch
@@ -1245,8 +1371,10 @@ function addData() {
   document.getElementById('newChannel').value = '';
   document.getElementById('newS24').value = '';
   document.getElementById('newS25').value = '';
+  document.getElementById('newS26').value = '';
   document.getElementById('newO24').value = '';
   document.getElementById('newO25').value = '';
+  document.getElementById('newO26').value = '';
   
   // Refresh dashboard
   refresh();
