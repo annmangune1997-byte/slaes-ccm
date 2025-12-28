@@ -1,1408 +1,2081 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Self‑Delivery vs Online Web – Unified Report (Monthly Data)</title>
-<style>
-  /* Existing styles remain the same */
-  body { font-family: Inter, Arial, sans-serif; background:#f5f7fb; margin:0; padding:20px; color:#0f1724}
-  h1{margin:0 0 18px}
-  .wrap{max-width:1200px;margin:0 auto}
-  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-  .card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
-  .kpi{grid-column:span 3;border-left:6px solid #4f46e5}
-  .full{grid-column:span 12}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:8px;border-bottom:1px solid #e6edf3;text-align:left}
-  th{background:#f1f5f9}
-  .muted{color:#64748b;font-size:13px}
-  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  select,button{padding:8px 10px;border-radius:8px;border:1px solid #cbd5e1;background:white}
-  canvas{width:100%!important;height:320px!important}
-  .red {color: red; font-weight:700}
-  .green {color: green; font-weight:700}
-  .add-data-form {margin-top:20px; padding:15px; background:#f8fafc; border-radius:8px}
-  .form-row {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
-  .form-row input, .form-row select {padding:8px; border-radius:6px; border:1px solid #cbd5e1}
-  .notification {position:fixed; top:20px; right:20px; padding:12px 20px; background:#10b981; color:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:none; z-index:1000}
-  .stats-grid {display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:10px}
-  .stat-card {background:#f1f5f9;padding:10px;border-radius:6px;text-align:center}
-  .stat-value {font-weight:700;font-size:16px}
-  .stat-label {font-size:12px;color:#64748b}
-  
-  /* Scorecards */
-  .scorecards {display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-  .scorecard {background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);text-align:center}
-  .scorecard-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .scorecard-title {font-size:14px;font-weight:600;color:#0f1724}
-  .scorecard-icon {font-size:24px}
-  .scorecard-content {font-size:20px;font-weight:700;color:#4f46e5}
-  .scorecard-subtitle {font-size:12px;color:#64748b;margin-top:4px}
-  
-  /* Analytics Grid */
-  .analytics-grid {display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}
-  .analytics-card {background:#f8fafc;border-radius:8px;padding:12px}
-  .analytics-card h4 {margin:0 0 10px;font-size:14px;color:#0f1724}
-  
-  /* Export Options */
-  .export-options {display:flex;gap:8px;margin-top:12px}
-  .export-btn {padding:8px 16px;border-radius:8px;border:1px solid #cbd5e1;background:#4f46e5;color:white;font-weight:500}
-  .export-btn:hover {background:#4338ca}
-  
-  /* Insights Section */
-  .insights-section {margin-top:20px}
-  .insights-list {background:#f8fafc;border-radius:8px;padding:12px;margin-top:10px}
-  .insight-item {padding:10px;border-left:3px solid #4f46e5;margin-bottom:8px;background:#fff;border-radius:4px}
-  .insight-title {font-weight:600;margin-bottom:4px}
-  .insight-description {font-size:13px;color:#64748b}
-  
-  /* New Styles */
-  .search-box {padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; margin-left:8px}
-  .edit-btn {background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer}
-  .delete-btn {background:#ef4444; color:white; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; margin-left:4px}
-  .loading {display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:#fff; animation:spin 1s ease-in-out infinite}
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .chart-container {position:relative; height:320px}
-  .tab-container {display:flex; margin-bottom:12px; border-bottom:1px solid #e2e8f0}
-  .tab {padding:8px 16px; cursor:pointer; border-bottom:2px solid transparent}
-  .tab.active {border-bottom-color:#4f46e5; color:#4f46e5; font-weight:600}
-  .tab-content {display:none}
-  .tab-content.active {display:block}
-  
-  @media (max-width:900px){
-    .kpi{grid-column:span 6}
-    .full{grid-column:span 12}
-    .stats-grid{grid-template-columns:repeat(2,1fr)}
-    .scorecards{grid-template-columns:1fr}
-    .analytics-grid{grid-template-columns:1fr}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crispy Chicken - HR Master System (Complete Data)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --cc-red: #E4002B;
+            --cc-red-dark: #b00022;
+            --cc-green: #28a745;
+            --cc-orange: #fd7e14;
+            --cc-yellow: #ffc107;
+            --cc-blue: #007bff;
+            --cc-purple: #6f42c1;
+            --cc-black: #1a1a1a;
+            --cc-white: #ffffff;
+            --cc-gray: #f4f6f9;
+            --cc-border: #e0e0e0;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --cc-black: #f0f0f0;
+            --cc-white: #1a1a1a;
+            --cc-gray: #2a2a2a;
+            --cc-border: #444;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            outline: none; 
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--cc-gray);
+            margin: 0;
+            padding: 0;
+            color: var(--cc-black);
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background-color: var(--cc-black);
+            color: var(--cc-white);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 4px solid var(--cc-red);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chef-icon {
+            font-size: 28px;
+            background: var(--cc-red);
+            color: white;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-title h1 { 
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 700; 
+            letter-spacing: -0.3px;
+        }
+        .app-title span { 
+            font-size: 11px; 
+            opacity: 0.7; 
+            text-transform: uppercase; 
+            display: block;
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--cc-white);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            padding: 15px 24px;
+            background: var(--cc-white);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid var(--cc-border);
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-wrapper input {
+            width: 100%;
+            padding: 10px 10px 10px 35px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: var(--cc-white);
+            color: var(--cc-black);
+            transition: var(--transition);
+        }
+        .search-wrapper input:focus { 
+            border-color: var(--cc-red); 
+            box-shadow: 0 0 0 3px rgba(228,0,43,0.1);
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .filter-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-wrapper select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: var(--cc-white);
+            color: var(--cc-black);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-branch { background-color: #444; }
+        .btn-export { background-color: var(--cc-green); }
+        .btn-email { background-color: var(--cc-blue); }
+        .btn-add { background-color: var(--cc-red); }
+        .btn-reset { 
+            background-color: transparent; 
+            border: 1px solid #ccc; 
+            color: #666; 
+            font-size: 11px; 
+        }
+        .btn-reset:hover { border-color: red; color: red; background: #fff0f0; }
+        .btn-import { background-color: var(--cc-purple); }
+        .btn-print { background-color: #17a2b8; }
+        .btn-backup { background-color: #6f42c1; }
+        .btn-quick-add { background-color: #20c997; }
+        .btn-summary { background-color: #6c757d; }
+
+        /* --- STATS --- */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px 24px 0 24px;
+        }
+        .stat-card {
+            background: var(--cc-white);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border-top: 4px solid transparent;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .stat-card.total { border-color: #666; }
+        .stat-card.ready { border-color: var(--cc-green); }
+        .stat-card.pending { border-color: var(--cc-yellow); }
+        .stat-card.expiring { border-color: var(--cc-orange); }
+        .stat-card.missing { border-color: #dc3545; }
+        .stat-number { 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: var(--cc-black); 
+            margin-bottom: 4px; 
+        }
+        .stat-label { 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: #888; 
+            text-transform: uppercase; 
+            text-align: center;
+        }
+
+        /* --- MISSING DOCUMENTS HEADLINE --- */
+        .missing-docs-section {
+            background: var(--cc-white);
+            margin: 20px 24px;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .missing-docs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--cc-border);
+        }
+        
+        .missing-docs-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--cc-black);
+        }
+        
+        .missing-docs-count {
+            background: var(--cc-red);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .missing-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .missing-category {
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .missing-category-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #dc3545;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .missing-category-count {
+            font-size: 20px;
+            font-weight: 800;
+            color: #b00022;
+        }
+
+        /* --- TABLE --- */
+        .table-container {
+            margin: 20px 24px 24px 24px;
+            background: var(--cc-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--cc-border);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--cc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #444;
+        }
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .table-scroll {
+            overflow-x: auto;
+            max-height: calc(100vh - 420px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 2200px;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #444;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 2px solid var(--cc-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #e9ecef;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            color: var(--cc-black);
+            vertical-align: middle;
+        }
+        tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        /* STATUS BADGES & CONDITIONAL FORMATTING COLORS */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-block;
+            text-align: center;
+        }
+        .badge-ready { background-color: #d4edda; color: #155724; }
+        .badge-pending { background-color: #fff3cd; color: #856404; }
+        .badge-warning { background-color: #ffeaa7; color: #856404; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; }
+
+        .check-yes { color: var(--cc-green); font-weight: bold; font-size: 14px; }
+        .check-no { color: #dc3545; font-size: 14px; }
+
+        /* Conditional Formatting Classes */
+        .date-expired { 
+            color: white; background-color: #dc3545; 
+            padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;
+        }
+        .date-warning { 
+            color: #856404; background-color: #fff3cd; 
+            padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;
+        }
+        .date-safe { 
+            color: #155724; background-color: #d4edda; 
+            padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;
+        }
+
+        .action-btn { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 4px; 
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        .action-btn:hover { background-color: rgba(0,0,0,0.05); }
+        .btn-edit { color: #007bff; }
+        .btn-del { color: #dc3545; }
+        .btn-view { color: #17a2b8; }
+        .btn-print-row { color: #6c757d; }
+
+        /* --- MODALS --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.open { 
+            display: flex; 
+            opacity: 1; 
+        }
+        .modal-content {
+            background: var(--cc-white);
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            display: flex; flex-direction: column;
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header { 
+            padding: 15px 20px; 
+            border-bottom: 1px solid var(--cc-border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #fcfcfc; 
+        }
+        .modal-body { 
+            padding: 20px; 
+            overflow-y: auto; 
+        }
+        .modal-footer { 
+            padding: 15px 20px; 
+            border-top: 1px solid var(--cc-border); 
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 10px; 
+            background: #fcfcfc; 
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+        }
+        .form-group { 
+            margin-bottom: 5px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 4px; 
+            font-weight: 600; 
+            font-size: 11px; 
+            color: #555; 
+        }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 13px; 
+            background-color: var(--cc-white); 
+            color: var(--cc-black); 
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            border-color: var(--cc-red); 
+            box-shadow: 0 0 0 3px rgba(228,0,43,0.1);
+        }
+        
+        .divider { 
+            grid-column: span 3; 
+            border-top: 1px solid var(--cc-border); 
+            margin: 10px 0 5px 0; 
+            color: var(--cc-red); 
+            font-weight: bold; 
+            font-size: 12px; 
+            padding-top: 10px;
+        }
+        
+        .branch-list-ul { 
+            list-style: none; 
+            padding: 0; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            border: 1px solid var(--cc-border); 
+            margin-top: 10px;
+        }
+        .branch-list-ul li { 
+            padding: 8px 15px; 
+            border-bottom: 1px solid #f5f5f5; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .branch-list-ul li:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* --- TOAST --- */
+        .toast {
+            visibility: hidden; 
+            min-width: 280px; 
+            background-color: #333; 
+            color: #fff;
+            text-align: center; 
+            border-radius: 50px; 
+            padding: 14px 24px;
+            position: fixed; 
+            z-index: 2000; 
+            bottom: 30px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); 
+            font-size: 14px;
+            opacity: 0; 
+            transition: all 0.3s;
+        }
+        .toast.show { 
+            visibility: visible; 
+            opacity: 1; 
+            transform: translateX(-50%) translateY(0); 
+        }
+        .toast.success { 
+            background-color: #28a745; 
+        }
+        .toast.error { 
+            background-color: #dc3545; 
+        }
+        .toast.warning { 
+            background-color: #ffc107; 
+            color: #333; 
+        }
+        .toast.info { 
+            background-color: #17a2b8; 
+        }
+
+        /* --- LOADING SPINNER --- */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--cc-red);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            header, .controls, .dashboard, .missing-docs-section, .modal-overlay, button, .table-header { 
+                display: none !important; 
+            }
+            body, .table-container { 
+                background: white; 
+                box-shadow: none; 
+                margin: 0; 
+                padding: 0; 
+            }
+            .table-container { 
+                margin: 0; 
+                border: none; 
+                border-radius: 0; 
+            }
+            .table-scroll { 
+                max-height: none; 
+                overflow: visible; 
+            }
+            table { 
+                min-width: 100%; 
+                border: 1px solid #ddd; 
+            }
+            th, td {
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-wrapper {
+                width: 100%;
+            }
+            .filter-wrapper {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .divider {
+                grid-column: span 1;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>📊 Self‑Delivery vs Online Web — Monthly Unified Report (2024 → 2026)</h1>
 
-  <div class="controls" style="margin-bottom:12px">
-    <label class="muted">Branch</label>
-    <select id="branchSelect"></select>
-    <label class="muted">Channel</label>
-    <select id="channelSelect"><option value="all">All</option><option>Self Delivery</option><option>Online Web</option></select>
-    <label class="muted">Metric</label>
-    <select id="metricSelect"><option value="sales">Sales</option><option value="orders">Orders</option></select>
-    <input type="text" id="searchBox" class="search-box" placeholder="Search table...">
-    <button id="exportCsv">Export CSV</button>
-    <button id="resetData">Reset Data</button>
-  </div>
-
-  <!-- Performance Scorecards -->
-  <div class="scorecards">
-    <div class="scorecard">
-      <div class="scorecard-header">
-        <span class="scorecard-title">Best Performer</span>
-        <span class="scorecard-icon">🏆</span>
-      </div>
-      <div class="scorecard-content" id="bestBranch">-</div>
-      <div class="scorecard-subtitle">Branch</div>
-    </div>
-    <div class="scorecard">
-      <div class="scorecard-header">
-        <span class="scorecard-title">Growth Leader</span>
-        <span class="scorecard-icon">📈</span>
-      </div>
-      <div class="scorecard-content" id="growthLeader">-</div>
-      <div class="scorecard-subtitle">Highest Growth</div>
-    </div>
-    <div class="scorecard">
-      <div class="scorecard-header">
-        <span class="scorecard-title">Efficiency Champion</span>
-        <span class="scorecard-icon">⚡</span>
-      </div>
-      <div class="scorecard-content" id="efficiencyChamp">-</div>
-      <div class="scorecard-subtitle">Best AOV</div>
-    </div>
-    <div class="scorecard">
-      <div class="scorecard-header">
-        <span class="scorecard-title">2026 Potential</span>
-        <span class="scorecard-icon">🔮</span>
-      </div>
-      <div class="scorecard-content" id="potential2026">-</div>
-      <div class="scorecard-subtitle">Projected Growth</div>
-    </div>
-  </div>
-
-  <div class="grid" style="margin-bottom:12px">
-    <div class="card kpi"><div class="muted">Total Sales 2024</div><div id="tot24" style="font-weight:700;font-size:18px"></div></div>
-    <div class="card kpi"><div class="muted">Total Sales 2025</div><div id="tot25" style="font-weight:700;font-size:18px"></div></div>
-    <div class="card kpi"><div class="muted">Total Sales 2026</div><div id="tot26" style="font-weight:700;font-size:18px"></div></div>
-    <div class="card kpi"><div class="muted">Total Orders 2024</div><div id="ord24" style="font-weight:700;font-size:18px"></div></div>
-    <div class="card kpi"><div class="muted">Total Orders 2025</div><div id="ord25" style="font-weight:700;font-size:18px"></div></div>
-    <div class="card kpi"><div class="muted">Total Orders 2026</div><div id="ord26" style="font-weight:700;font-size:18px"></div></div>
-
-    <div class="card full">
-      <h3 style="margin-top:0">Trend Analysis</h3>
-      <div class="chart-container">
-        <canvas id="trendChart"></canvas>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="salesGrowth">0%</div>
-          <div class="stat-label">Sales Growth (24→25)</div>
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <div class="chef-icon">👨‍🍳</div>
+            <div class="app-title">
+                <h1>CRISPY CHICKEN HR</h1>
+                <span>Staff Tracker & Compliance System</span>
+            </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="orderGrowth">0%</div>
-          <div class="stat-label">Order Growth (24→25)</div>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <button class="btn-reset" onclick="resetData()">⚠ Reset</button>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="salesGrowth26">0%</div>
-          <div class="stat-label">Sales Growth (25→26)</div>
+    </header>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search ID, Name, Nationality, Designation..." onkeyup="filterData()">
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="orderGrowth26">0%</div>
-          <div class="stat-label">Order Growth (25→26)</div>
+        
+        <div class="filter-wrapper">
+            <select id="branchFilter" onchange="filterData()">
+                <option value="">All Branches</option>
+            </select>
+            <select id="statusFilter" onchange="filterData()">
+                <option value="">All Status</option>
+                <option value="ready">Ready</option>
+                <option value="warning">Warning</option>
+                <option value="expired">Expired</option>
+                <option value="missing">Missing Docs</option>
+            </select>
+            <select id="nationalityFilter" onchange="filterData()">
+                <option value="">All Nationalities</option>
+            </select>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="avgAOV24">0</div>
-          <div class="stat-label">Avg AOV 2024</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="avgAOV26">0</div>
-          <div class="stat-label">Avg AOV 2026</div>
-        </div>
-      </div>
+        
+        <button class="btn-branch" onclick="openBranchModal()">🏢 Branches</button>
+        <button class="btn-import" onclick="importAllData()" id="importBtn">📥 Import All Data</button>
+        <button class="btn-quick-add" onclick="openQuickAddModal()">⚡ Quick Add</button>
+        <button class="btn-export" onclick="exportToCSV()">📊 Excel</button>
+        <button class="btn-summary" onclick="showSummary()">📋 Summary</button>
+        <button class="btn-email" onclick="sendReportEmail()">📧 Email</button>
+        <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-add" onclick="openAddModal()">+ Add Staff</button>
     </div>
-    
-    <!-- Tabbed Analytics Section -->
-    <div class="card full">
-      <div class="tab-container">
-        <div class="tab active" data-tab="channel">Channel Comparison</div>
-        <div class="tab" data-tab="branch">Branch Performance</div>
-        <div class="tab" data-tab="monthly">Monthly Trends</div>
-        <div class="tab" data-tab="yoy">YoY Comparison</div>
-      </div>
-      
-      <div class="tab-content active" id="channel-tab">
-        <h3 style="margin-top:0">Channel Comparison (2026)</h3>
-        <div class="chart-container">
-          <canvas id="stackChart"></canvas>
+
+    <!-- Stats -->
+    <div class="dashboard">
+        <div class="stat-card total">
+            <div class="stat-number" id="totalCount">0</div>
+            <div class="stat-label">Total Staff</div>
         </div>
-      </div>
-      
-      <div class="tab-content" id="branch-tab">
-        <h3 style="margin-top:0">Branch Performance</h3>
-        <div class="chart-container">
-          <canvas id="branchChart"></canvas>
+        <div class="stat-card ready">
+            <div class="stat-number" id="activeCount" style="color: #28a745;">0</div>
+            <div class="stat-label">Working Fine</div>
         </div>
-      </div>
-      
-      <div class="tab-content" id="monthly-tab">
-        <h3 style="margin-top:0">Monthly Trends</h3>
-        <div class="chart-container">
-          <canvas id="monthlyChart"></canvas>
+        <div class="stat-card pending">
+            <div class="stat-number" id="warningCount" style="color: #ffc107;">0</div>
+            <div class="stat-label">Expiring Soon</div>
         </div>
-      </div>
-      
-      <div class="tab-content" id="yoy-tab">
-        <h3 style="margin-top:0">Year-over-Year Comparison</h3>
-        <div class="chart-container">
-          <canvas id="yoyChart"></canvas>
+        <div class="stat-card expiring">
+            <div class="stat-number" id="expiredCount" style="color: #fd7e14;">0</div>
+            <div class="stat-label">Expired Docs</div>
         </div>
-      </div>
+        <div class="stat-card missing">
+            <div class="stat-number" id="missingCount" style="color: #dc3545;">0</div>
+            <div class="stat-label">Missing Docs</div>
+        </div>
     </div>
-    
-    <div class="card full">
-      <h3 style="margin-top:0">Branch × Channel Monthly Table</h3>
-      <div style="overflow:auto"><table id="dataTable"><thead></thead><tbody></tbody></table></div>
+
+    <!-- Missing Documents Headline Section -->
+    <div class="missing-docs-section" id="missingDocsSection" style="display: none;">
+        <div class="missing-docs-header">
+            <div class="missing-docs-title">
+                <i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 8px;"></i>
+                MISSING DOCUMENTS - REQUIRES ATTENTION
+            </div>
+            <div class="missing-docs-count" id="missingTotalCount">0</div>
+        </div>
+        <div class="missing-categories" id="missingCategories">
+            <!-- Filled by JavaScript -->
+        </div>
     </div>
-  </div>
 
-  <!-- Insights Section -->
-  <div class="insights-section">
-    <h3>Key Insights</h3>
-    <div class="insights-list" id="insightsList">
-      <div class="insight-item">
-        <div class="insight-title">Loading insights...</div>
-        <div class="insight-description">Please wait while we analyze your data</div>
-      </div>
+    <!-- Main Table -->
+    <div class="table-container">
+        <div class="table-header">
+            <div class="table-title">Staff Records Database (Complete Data)</div>
+            <div class="table-actions">
+                <button onclick="toggleColumnVisibility()" title="Show/Hide Columns">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button onclick="sortByExpiry()" title="Sort by Expiry">
+                    <i class="fas fa-sort-amount-down"></i>
+                </button>
+                <button onclick="showHelp()" title="Help">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Nationality</th>
+                        <th>Gender</th>
+                        <th>Designation</th>
+                        <th>Joining Date</th>
+                        <th>ID No.</th>
+                        <th>Passport No.</th>
+                        <th>Passport Exp.</th>
+                        <th>ID/Visa Exp.</th>
+                        <th>Branch</th>
+                        <th>Status</th>
+                        <th>Missing Items</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                    <!-- JS Data -->
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="export-options">
-      <button id="generateInsights" class="export-btn">Generate Insights</button>
-      <button id="exportPDF" class="export-btn">Export PDF Report</button>
-      <button id="exportExcel" class="export-btn">Export Excel</button>
-      <button id="shareReport" class="export-btn">Share Report</button>
+
+    <!-- 1. BRANCH MODAL -->
+    <div id="branchModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Manage Branches</h3>
+                <button class="action-btn" onclick="closeModal('branchModal')" style="color: #666; font-size: 18px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Add New Branch</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="newBranchName" placeholder="Enter branch name..." onkeypress="if(event.key==='Enter') addNewBranch()">
+                        <button class="btn-add" onclick="addNewBranch()">Add</button>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px; color: #333;">Existing Branches</h4>
+                    <ul id="branchListDisplay" class="branch-list-ul"></ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-reset" onclick="closeModal('branchModal')">Close</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="add-data-form">
-    <h3>Add New Data</h3>
-    <div class="form-row">
-      <input type="text" id="newMonth" placeholder="Month (e.g. Jan)" required>
-      <input type="text" id="newBranch" placeholder="Branch" required>
-      <select id="newChannel" required>
-        <option value="">Select Channel</option>
-        <option>Self Delivery</option>
-        <option>Online Web</option>
-      </select>
+    <!-- 2. ADD/EDIT STAFF MODAL -->
+    <div id="staffModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Staff Member</h3>
+                <button class="action-btn" onclick="closeModal('staffModal')" style="color: #666; font-size: 18px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="staffForm">
+                    <input type="hidden" id="editId">
+                    
+                    <div class="form-grid">
+                        <div class="divider">Basic Information</div>
+                        <div class="form-group">
+                            <label>Employee ID *</label>
+                            <input type="text" id="inpId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="inpName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nationality</label>
+                            <select id="inpNationality">
+                                <option value="">Select...</option>
+                                <option value="JORDANIAN">JORDANIAN</option>
+                                <option value="PHILIPPINES">PHILIPPINES</option>
+                                <option value="INDIAN">INDIAN</option>
+                                <option value="SRILANKA">SRILANKA</option>
+                                <option value="NEPAL">NEPAL</option>
+                                <option value="BANGLADESH">BANGLADESH</option>
+                                <option value="CAMEROON">CAMEROON</option>
+                                <option value="EGYPT">EGYPT</option>
+                                <option value="PAKISTAN">PAKISTAN</option>
+                                <option value="SYRIA">SYRIA</option>
+                                <option value="MYANMAR">MYANMAR</option>
+                                <option value="FILIPINO">FILIPINO</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="inpGender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Designation</label>
+                            <input type="text" id="inpDesignation" placeholder="e.g., Manager, Waiter">
+                        </div>
+                        <div class="form-group">
+                            <label>Branch *</label>
+                            <select id="inpBranch" required>
+                                <option value="">-- Select Branch --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Joining Date</label>
+                            <input type="date" id="inpJoiningDate">
+                        </div>
+                        <div class="form-group">
+                            <label>ID Number</label>
+                            <input type="text" id="inpIdNumber" placeholder="Employee ID Number">
+                        </div>
+
+                        <div class="divider">Passport Details</div>
+                        <div class="form-group">
+                            <label>Passport Number</label>
+                            <input type="text" id="inpPassNum" placeholder="Passport Number">
+                        </div>
+                        <div class="form-group">
+                            <label>Passport Expiry Date</label>
+                            <input type="date" id="inpPassExp">
+                        </div>
+                        <div class="form-group">
+                            <label>Passport Received?</label>
+                            <select id="inpPassportReceived">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="divider">Visa & IDs</div>
+                        <div class="form-group">
+                            <label>ID & Visa Expiry Date</label>
+                            <input type="date" id="inpIdVisaExp">
+                        </div>
+                        <div class="form-group">
+                            <label>Medical Expiry Date</label>
+                            <input type="date" id="inpMedicalExp">
+                        </div>
+                        <div class="form-group">
+                            <label>Insurance Status</label>
+                            <select id="inpInsurance">
+                                <option value="valid">Valid</option>
+                                <option value="expired">Expired</option>
+                                <option value="not_applicable">Not Applicable</option>
+                            </select>
+                        </div>
+
+                        <div class="divider">Documents Checklist</div>
+                        <div class="form-group">
+                            <label>Photos (0-5)</label>
+                            <input type="number" id="inpPhotos" min="0" max="5" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>CV Received?</label>
+                            <select id="inpCV">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Offer Letter?</label>
+                            <select id="inpOffer">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Contract Signed?</label>
+                            <select id="inpContract">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tip Center Sent?</label>
+                            <select id="inpTipCenter">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="divider">Additional Information</div>
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Notes / Comments</label>
+                            <textarea id="inpNotes" rows="3" placeholder="Additional notes, comments, or special instructions..."></textarea>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-reset" onclick="closeModal('staffModal')">Cancel</button>
+                <button class="btn-add" onclick="saveStaff()">💾 Save Staff</button>
+            </div>
+        </div>
     </div>
-    <div class="form-row">
-      <input type="number" id="newS24" placeholder="Sales 2024" required>
-      <input type="number" id="newS25" placeholder="Sales 2025" required>
-      <input type="number" id="newS26" placeholder="Sales 2026" required>
+
+    <!-- 3. QUICK ADD MODAL -->
+    <div id="quickAddModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>⚡ Quick Add Staff</h3>
+                <button class="action-btn" onclick="closeModal('quickAddModal')" style="color: #666; font-size: 18px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <input type="text" id="quickId" placeholder="STF001">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="quickName" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Nationality</label>
+                    <select id="quickNationality">
+                        <option value="PHILIPPINES">PHILIPPINES</option>
+                        <option value="INDIAN">INDIAN</option>
+                        <option value="NEPAL">NEPAL</option>
+                        <option value="EGYPT">EGYPT</option>
+                        <option value="BANGLADESH">BANGLADESH</option>
+                        <option value="JORDANIAN">JORDANIAN</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Designation</label>
+                    <input type="text" id="quickDesignation" placeholder="e.g., Waiter, Manager">
+                </div>
+                <div class="form-group">
+                    <label>Branch</label>
+                    <select id="quickBranch"></select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="quickStatus">
+                        <option value="working">Working Fine</option>
+                        <option value="expiring">Expiring Soon</option>
+                        <option value="missing">Missing Docs</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-reset" onclick="closeModal('quickAddModal')">Cancel</button>
+                <button class="btn-add" onclick="saveQuickStaff()">💾 Add Staff</button>
+            </div>
+        </div>
     </div>
-    <div class="form-row">
-      <input type="number" id="newO24" placeholder="Orders 2024" required>
-      <input type="number" id="newO25" placeholder="Orders 2025" required>
-      <input type="number" id="newO26" placeholder="Orders 2026" required>
-    </div>
-    <button id="addDataBtn">Add Data</button>
-  </div>
-</div>
 
-<div id="notification" class="notification">Data added successfully!</div>
+    <div id="toast" class="toast">Operation Successful</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-// ======= Full monthly rows as objects (converted from user's data) =======
-const DATA_ROWS = [
-// Hamdan St — Self Delivery
-{m:1,month:'Jan',branch:'Hamdan St',channel:'Self Delivery',s24:130332,s25:119300,s26:0,o24:2797,o25:2757,o26:0},
-{m:2,month:'Feb',branch:'Hamdan St',channel:'Self Delivery',s24:119033,s25:111546,s26:0,o24:2797,o25:2460,o26:0},
-{m:3,month:'Mar',branch:'Hamdan St',channel:'Self Delivery',s24:112730,s25:87783,s26:0,o24:2474,o25:1877,o26:0},
-{m:4,month:'Apr',branch:'Hamdan St',channel:'Self Delivery',s24:134005,s25:106625,s26:0,o24:2815,o25:2363,o26:0},
-{m:5,month:'May',branch:'Hamdan St',channel:'Self Delivery',s24:142948,s25:117066,s26:0,o24:3066,o25:2515,o26:0},
-{m:6,month:'Jun',branch:'Hamdan St',channel:'Self Delivery',s24:153855,s25:106229,s26:0,o24:3261,o25:2318,o26:0},
-{m:7,month:'Jul',branch:'Hamdan St',channel:'Self Delivery',s24:140646,s25:109205,s26:0,o24:3236,o25:2557,o26:0},
-{m:8,month:'Aug',branch:'Hamdan St',channel:'Self Delivery',s24:146010,s25:103184,s26:0,o24:3267,o25:2247,o26:0},
-{m:9,month:'Sep',branch:'Hamdan St',channel:'Self Delivery',s24:124891,s25:106562,s26:0,o24:2658,o25:2345,o26:0},
-{m:10,month:'Oct',branch:'Hamdan St',channel:'Self Delivery',s24:122430,s25:103567,s26:0,o24:2716,o25:2165,o26:0},
-{m:11,month:'Nov',branch:'Hamdan St',channel:'Self Delivery',s24:122157,s25:0,s26:0,o24:2835,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Hamdan St',channel:'Self Delivery',s24:134030,s25:0,s26:0,o24:2740,o25:0,o26:0},
-// Hamdan St — Online Web
-{m:1,month:'Jan',branch:'Hamdan St',channel:'Online Web',s24:39204,s25:25546,s26:0,o24:771,o25:569,o26:0},
-{m:2,month:'Feb',branch:'Hamdan St',channel:'Online Web',s24:33373,s25:28689,s26:0,o24:661,o25:644,o26:0},
-{m:3,month:'Mar',branch:'Hamdan St',channel:'Online Web',s24:29535,s25:23967,s26:0,o24:615,o25:493,o26:0},
-{m:4,month:'Apr',branch:'Hamdan St',channel:'Online Web',s24:33433,s25:35261,s26:0,o24:674,o25:750,o26:0},
-{m:5,month:'May',branch:'Hamdan St',channel:'Online Web',s24:35454,s25:39090,s26:0,o24:733,o25:905,o26:0},
-{m:6,month:'Jun',branch:'Hamdan St',channel:'Online Web',s24:40787,s25:38061,s26:0,o24:825,o25:800,o26:0},
-{m:7,month:'Jul',branch:'Hamdan St',channel:'Online Web',s24:39832,s25:41582,s26:0,o24:876,o25:1007,o26:0},
-{m:8,month:'Aug',branch:'Hamdan St',channel:'Online Web',s24:32362,s25:34835,s26:0,o24:756,o25:771,o26:0},
-{m:9,month:'Sep',branch:'Hamdan St',channel:'Online Web',s24:27887,s25:41146,s26:0,o24:547,o25:889,o26:0},
-{m:10,month:'Oct',branch:'Hamdan St',channel:'Online Web',s24:25924,s25:32395,s26:0,o24:590,o25:688,o26:0},
-{m:11,month:'Nov',branch:'Hamdan St',channel:'Online Web',s24:20000,s25:0,s26:0,o24:450,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Hamdan St',channel:'Online Web',s24:24052,s25:0,s26:0,o24:494,o25:0,o26:0},
+    <script>
+        // --- CONFIG ---
+        const STORAGE_KEY_EMP = 'cc_employees_v5';
+        const STORAGE_KEY_BR = 'cc_branches_v5';
+        const STORAGE_KEY_THEME = 'cc_theme';
+        
+        let employees = [];
+        let branches = ["CC Hamdan St", "CC Khaldia", "CC Muroor", "CC Shabiya 11", "CC Head Office"];
+        let allDataImported = false;
 
-// Al Khalidiyah — Self Delivery
-{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Self Delivery',s24:73203,s25:60360,s26:0,o24:1444,o25:1241,o26:0},
-{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Self Delivery',s24:64910,s25:51718,s26:0,o24:1270,o25:1054,o26:0},
-{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Self Delivery',s24:56006,s25:44621,s26:0,o24:1114,o25:891,o26:0},
-{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Self Delivery',s24:63867,s25:54785,s26:0,o24:1268,o25:1156,o26:0},
-{m:5,month:'May',branch:'Al Khalidiyah',channel:'Self Delivery',s24:71236,s25:54610,s26:0,o24:1423,o25:1083,o26:0},
-{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Self Delivery',s24:78402,s25:56860,s26:0,o24:1467,o25:1078,o26:0},
-{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Self Delivery',s24:72570,s25:51618,s26:0,o24:1438,o25:1097,o26:0},
-{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Self Delivery',s24:70910,s25:51039,s26:0,o24:1505,o25:1032,o26:0},
-{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Self Delivery',s24:61308,s25:57769,s26:0,o24:1264,o25:1144,o26:0},
-{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60725,s25:61294,s26:0,o24:1298,o25:1164,o26:0},
-{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Self Delivery',s24:60461,s25:0,s26:0,o24:1217,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Self Delivery',s24:85037,s25:0,s26:0,o24:1225,o25:0,o26:0},
-// Al Khalidiyah — Online Web
-{m:1,month:'Jan',branch:'Al Khalidiyah',channel:'Online Web',s24:21135,s25:13749,s26:0,o24:412,o25:292,o26:0},
-{m:2,month:'Feb',branch:'Al Khalidiyah',channel:'Online Web',s24:21217,s25:14662,s26:0,o24:417,o25:305,o26:0},
-{m:3,month:'Mar',branch:'Al Khalidiyah',channel:'Online Web',s24:16169,s25:12644,s26:0,o24:321,o25:198,o26:0},
-{m:4,month:'Apr',branch:'Al Khalidiyah',channel:'Online Web',s24:20903,s25:16370,s26:0,o24:390,o25:312,o26:0},
-{m:5,month:'May',branch:'Al Khalidiyah',channel:'Online Web',s24:19685,s25:20318,s26:0,o24:366,o25:439,o26:0},
-{m:6,month:'Jun',branch:'Al Khalidiyah',channel:'Online Web',s24:21759,s25:19102,s26:0,o24:399,o25:377,o26:0},
-{m:7,month:'Jul',branch:'Al Khalidiyah',channel:'Online Web',s24:22254,s25:17766,s26:0,o24:447,o25:426,o26:0},
-{m:8,month:'Aug',branch:'Al Khalidiyah',channel:'Online Web',s24:18936,s25:17361,s26:0,o24:388,o25:365,o26:0},
-{m:9,month:'Sep',branch:'Al Khalidiyah',channel:'Online Web',s24:14826,s25:16495,s26:0,o24:281,o25:316,o26:0},
-{m:10,month:'Oct',branch:'Al Khalidiyah',channel:'Online Web',s24:16403,s25:17815,s26:0,o24:371,o25:354,o26:0},
-{m:11,month:'Nov',branch:'Al Khalidiyah',channel:'Online Web',s24:11694,s25:0,s26:0,o24:253,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Khalidiyah',channel:'Online Web',s24:12724,s25:0,s26:0,o24:245,o25:0,o26:0},
+        // --- COMPLETE EMPLOYEE DATA FROM EXCEL ---
+        // I'll include a subset for testing, but you should paste all 169 records here
+        const completeEmployeeData = [
+            { id: "STF001", name: "MOHAMMED TAYSEER", nationality: "JORDANIAN", gender: "Male", designation: "MANAGER ADMINISTRATION", idNumber: "784198168526303", joiningDate: "2016-04-16", passportNumber: "", passportExpiry: "2026-08-09", idVisaExpiry: "", branch: "CC Hamdan St" },
+            { id: "STF002", name: "ZAKARIA MOHAMMAD NEMER HAMMAD", nationality: "JORDANIAN", gender: "Male", designation: "ASSISTANT MANAGER", idNumber: "784198520265962", joiningDate: "2016-07-24", passportNumber: "", passportExpiry: "2026-08-07", idVisaExpiry: "", branch: "CC Hamdan St" },
+            { id: "STF003", name: "AHMAD JUMAH HASAN OTHMAN", nationality: "JORDANIAN", gender: "Male", designation: "SUPERVISOR", idNumber: "784199413049059", joiningDate: "2016-07-24", passportNumber: "", passportExpiry: "2026-08-14", idVisaExpiry: "", branch: "CC Hamdan St" },
+            { id: "STF004", name: "ADEL FAWZI AHMAD AL DMOUR", nationality: "JORDANIAN", gender: "Male", designation: "SUPERVISOR", idNumber: "784199496241045", joiningDate: "2016-07-23", passportNumber: "", passportExpiry: "2026-08-13", idVisaExpiry: "", branch: "CC Hamdan St" },
+            { id: "STF005", name: "ARJAY HIZON PALCONIT", nationality: "PHILIPPINES", gender: "Male", designation: "WAITERS FOOD", idNumber: "784198470839733", joiningDate: "2016-07-23", passportNumber: "P6143130B", passportExpiry: "2031-01-20", idVisaExpiry: "2026-08-23", branch: "CC Hamdan St" },
+            { id: "STF006", name: "DENNIS VIDAL OLICIA", nationality: "PHILIPPINES", gender: "Male", designation: "WAITERS FOOD", idNumber: "784198204098358", joiningDate: "2016-07-24", passportNumber: "P3973729B", passportExpiry: "2029-11-25", idVisaExpiry: "2026-08-23", branch: "CC Hamdan St" },
+            { id: "STF007", name: "JOMAR CARREON BALTAZAR", nationality: "PHILIPPINES", gender: "Male", designation: "GRILLED CHICKEN MAKER", idNumber: "784199076464652", joiningDate: "2016-07-23", passportNumber: "P5533971B", passportExpiry: "2030-09-20", idVisaExpiry: "2026-08-23", branch: "CC Hamdan St" },
+            { id: "STF008", name: "MOHAMED IRSHAD ALAM MOHAMMED ISHAQUE", nationality: "INDIAN", gender: "Male", designation: "SALES SUPERVISOR", idNumber: "784198975272042", joiningDate: "2018-11-24", passportNumber: "N8620185", passportExpiry: "2026-03-29", idVisaExpiry: "2024-12-01", branch: "CC Hamdan St" },
+            { id: "STF009", name: "MOHAMMED IRFAN IQBAL HUSSAIN", nationality: "INDIAN", gender: "Male", designation: "WAITER", idNumber: "784199547387698", joiningDate: "2018-12-19", passportNumber: "W9754592", passportExpiry: "2033-09-18", idVisaExpiry: "2025-02-14", branch: "CC Hamdan St" },
+            { id: "STF010", name: "SAMEERA MALITH SUDASINGHE", nationality: "SRILANKA", gender: "Male", designation: "GRILLED CHICKEN MAKER", idNumber: "784198752190466", joiningDate: "2018-12-22", passportNumber: "N7647850", passportExpiry: "2028-02-19", idVisaExpiry: "2025-01-26", branch: "CC Hamdan St" },
+            { id: "STF011", name: "JEFREY BAUTISTA NALUZ", nationality: "FILIPINO", gender: "Male", designation: "CLEANING WORKER", idNumber: "784198326057134", joiningDate: "2019-02-17", passportNumber: "P8671211A", passportExpiry: "2028-09-07", idVisaExpiry: "2025-03-14", branch: "CC Hamdan St" },
+            { id: "STF012", name: "MUHAMMAD UVAIS EDA KKAVIL", nationality: "INDIAN", gender: "Male", designation: "SUPERVISOR", idNumber: "784199462492580", joiningDate: "2019-03-04", passportNumber: "Y6480640", passportExpiry: "2033-07-17", idVisaExpiry: "2025-03-14", branch: "CC Hamdan St" },
+            { id: "STF013", name: "KADAR CHODA THIL HUSSAN", nationality: "INDIAN", gender: "Male", designation: "CLEANER", idNumber: "784197882684141", joiningDate: "2019-10-21", passportNumber: "P0741916", passportExpiry: "2026-06-01", idVisaExpiry: "2025-12-19", branch: "CC Hamdan St" },
+            { id: "STF014", name: "MARTIN ERVINA", nationality: "PHILIPPINES", gender: "Male", designation: "KITCHEN HELPER", idNumber: "784198272826193", joiningDate: "2019-05-04", passportNumber: "P9532214A", passportExpiry: "2028-11-12", idVisaExpiry: "2025-06-20", branch: "CC Hamdan St" },
+            { id: "STF015", name: "KUSHAL BISWAKARMA KUMAR", nationality: "INDIAN", gender: "Male", designation: "KITCHEN HELPER", idNumber: "784199125763716", joiningDate: "2019-05-14", passportNumber: "T1046736", passportExpiry: "2029-02-13", idVisaExpiry: "2025-06-20", branch: "CC Hamdan St" },
+            { id: "STF016", name: "ZAID ALI HASSAN", nationality: "JORDANIAN", gender: "Male", designation: "FOOD SERVICE SUPERVISOR", idNumber: "784199598292573", joiningDate: "2019-05-29", passportNumber: "", passportExpiry: "", idVisaExpiry: "2025-07-08", branch: "CC Hamdan St" },
+            { id: "STF017", name: "MACHHINDRA LINGTHEP", nationality: "NEPAL", gender: "Male", designation: "WAITER", idNumber: "784199317138321", joiningDate: "2020-08-18", passportNumber: "PA3219869", passportExpiry: "2034-08-18", idVisaExpiry: "2026-08-15", branch: "CC Hamdan St" },
+            { id: "STF018", name: "MELVIN NARISMA", nationality: "PHILIPPINES", gender: "Male", designation: "GRILLED CHICKEN MAKER", idNumber: "784198371792601", joiningDate: "2020-12-14", passportNumber: "P7290929B", passportExpiry: "2031-07-27", idVisaExpiry: "2024-12-29", branch: "CC Hamdan St" },
+            { id: "STF019", name: "RAM KUMAR", nationality: "NEPAL", gender: "Male", designation: "CLEANER", idNumber: "784198783240835", joiningDate: "2021-02-26", passportNumber: "8832423.00", passportExpiry: "2025-05-25", idVisaExpiry: "2025-04-04", branch: "CC Hamdan St" },
+            { id: "STF020", name: "JEFFREY REVIVIS GARCIA", nationality: "PHILIPPINES", gender: "Male", designation: "WAITER", idNumber: "784199072963590", joiningDate: "2021-05-30", passportNumber: "P7249169A", passportExpiry: "2028-05-20", idVisaExpiry: "2025-05-28", branch: "CC Hamdan St" },
+            { id: "STF021", name: "RAJU POUDEL LOK", nationality: "NEPAL", gender: "Male", designation: "CLEANER", idNumber: "784198714601006", joiningDate: "2021-05-30", passportNumber: "10969864.00", passportExpiry: "2028-06-19", idVisaExpiry: "2025-05-28", branch: "CC Hamdan St" }
+            // Add all remaining employees here...
+        ];
 
-// Shabiya 11 — Self Delivery
-{m:1,month:'Jan',branch:'Shabiya 11',channel:'Self Delivery',s24:53600,s25:52778,s26:0,o24:1184,o25:1201,o26:0},
-{m:2,month:'Feb',branch:'Shabiya 11',channel:'Self Delivery',s24:56902,s25:51105,s26:0,o24:1260,o25:1136,o26:0},
-{m:3,month:'Mar',branch:'Shabiya 11',channel:'Self Delivery',s24:50445,s25:40273,s26:0,o24:1167,o25:906,o26:0},
-{m:4,month:'Apr',branch:'Shabiya 11',channel:'Self Delivery',s24:63642,s25:56981,s26:0,o24:1434,o25:1246,o26:0},
-{m:5,month:'May',branch:'Shabiya 11',channel:'Self Delivery',s24:62211,s25:56703,s26:0,o24:1380,o25:1187,o26:0},
-{m:6,month:'Jun',branch:'Shabiya 11',channel:'Self Delivery',s24:64920,s25:54611,s26:0,o24:1396,o25:1114,o26:0},
-{m:7,month:'Jul',branch:'Shabiya 11',channel:'Self Delivery',s24:60095,s25:55160,s26:0,o24:1366,o25:1177,o26:0},
-{m:8,month:'Aug',branch:'Shabiya 11',channel:'Self Delivery',s24:58704,s25:55336,s26:0,o24:1388,o25:1162,o26:0},
-{m:9,month:'Sep',branch:'Shabiya 11',channel:'Self Delivery',s24:50504,s25:61290,s26:0,o24:1135,o25:1269,o26:0},
-{m:10,month:'Oct',branch:'Shabiya 11',channel:'Self Delivery',s24:56993,s25:57956,s26:0,o24:1324,o25:1225,o26:0},
-{m:11,month:'Nov',branch:'Shabiya 11',channel:'Self Delivery',s24:59511,s25:0,s26:0,o24:1272,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Shabiya 11',channel:'Self Delivery',s24:56257,s25:0,s26:0,o24:1152,o25:0,o26:0},
-// Shabiya 11 — Online Web
-{m:1,month:'Jan',branch:'Shabiya 11',channel:'Online Web',s24:11054,s25:7398,s26:0,o24:244,o25:177,o26:0},
-{m:2,month:'Feb',branch:'Shabiya 11',channel:'Online Web',s24:11743,s25:6340,s26:0,o24:222,o25:143,o26:0},
-{m:3,month:'Mar',branch:'Shabiya 11',channel:'Online Web',s24:8011,s25:3282,s26:0,o24:179,o25:74,o26:0},
-{m:4,month:'Apr',branch:'Shabiya 11',channel:'Online Web',s24:7720,s25:12005,s26:0,o24:163,o25:245,o26:0},
-{m:5,month:'May',branch:'Shabiya 11',channel:'Online Web',s24:10015,s25:13045,s26:0,o24:204,o25:308,o26:0},
-{m:6,month:'Jun',branch:'Shabiya 11',channel:'Online Web',s24:11933,s25:15350,s26:0,o24:238,o25:306,o26:0},
-{m:7,month:'Jul',branch:'Shabiya 11',channel:'Online Web',s24:9793,s25:16910,s26:0,o24:223,o25:404,o26:0},
-{m:8,month:'Aug',branch:'Shabiya 11',channel:'Online Web',s24:11299,s25:12568,s26:0,o24:237,o25:260,o26:0},
-{m:9,month:'Sep',branch:'Shabiya 11',channel:'Online Web',s24:8747,s25:10420,s26:0,o24:179,o25:216,o26:0},
-{m:10,month:'Oct',branch:'Shabiya 11',channel:'Online Web',s24:10253,s25:11708,s26:0,o24:257,o25:254,o26:0},
-{m:11,month:'Nov',branch:'Shabiya 11',channel:'Online Web',s24:10046,s25:0,s26:0,o24:219,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Shabiya 11',channel:'Online Web',s24:7951,s25:0,s26:0,o24:151,o25:0,o26:0},
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM loaded, initializing HR System...");
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+            
+            // Load data
+            loadData();
+            
+            // Set up keyboard shortcuts
+            setupKeyboardShortcuts();
+            
+            // Initial UI update
+            updateUI();
+            
+            console.log("HR System initialized successfully");
+        });
 
-// Muroor — Self Delivery
-{m:1,month:'Jan',branch:'Muroor',channel:'Self Delivery',s24:56696,s25:59749,s26:0,o24:1140,o25:1255,o26:0},
-{m:2,month:'Feb',branch:'Muroor',channel:'Self Delivery',s24:54156,s25:58438,s26:0,o24:1078,o25:1199,o26:0},
-{m:3,month:'Mar',branch:'Muroor',channel:'Self Delivery',s24:45652,s25:41808,s26:0,o24:899,o25:817,o26:0},
-{m:4,month:'Apr',branch:'Muroor',channel:'Self Delivery',s24:59978,s25:56795,s26:0,o24:1209,o25:1211,o26:0},
-{m:5,month:'May',branch:'Muroor',channel:'Self Delivery',s24:61958,s25:54302,s26:0,o24:1294,o25:1094,o26:0},
-{m:6,month:'Jun',branch:'Muroor',channel:'Self Delivery',s24:71109,s25:56046,s26:0,o24:1341,o25:1076,o26:0},
-{m:7,month:'Jul',branch:'Muroor',channel:'Self Delivery',s24:63143,s25:53001,s26:0,o24:1360,o25:1114,o26:0},
-{m:8,month:'Aug',branch:'Muroor',channel:'Self Delivery',s24:64842,s25:44361,s26:0,o24:1386,o25:912,o26:0},
-{m:9,month:'Sep',branch:'Muroor',channel:'Self Delivery',s24:61113,s25:51018,s26:0,o24:1295,o25:973,o26:0},
-{m:10,month:'Oct',branch:'Muroor',channel:'Self Delivery',s24:65561,s25:50495,s26:0,o24:1384,o25:973,o26:0},
-{m:11,month:'Nov',branch:'Muroor',channel:'Self Delivery',s24:62004,s25:0,s26:0,o24:1380,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Muroor',channel:'Self Delivery',s24:63780,s25:0,s26:0,o24:1231,o25:0,o26:0},
-// Muroor — Online Web
-{m:1,month:'Jan',branch:'Muroor',channel:'Online Web',s24:8231,s25:3352,s26:0,o24:154,o25:72,o26:0},
-{m:2,month:'Feb',branch:'Muroor',channel:'Online Web',s24:11050,s25:3939,s26:0,o24:199,o25:74,o26:0},
-{m:3,month:'Mar',branch:'Muroor',channel:'Online Web',s24:7874,s25:3831,s26:0,o24:143,o25:67,o26:0},
-{m:4,month:'Apr',branch:'Muroor',channel:'Online Web',s24:8167,s25:6103,s26:0,o24:140,o25:113,o26:0},
-{m:5,month:'May',branch:'Muroor',channel:'Online Web',s24:9704,s25:6438,s26:0,o24:174,o25:131,o26:0},
-{m:6,month:'Jun',branch:'Muroor',channel:'Online Web',s24:10966,s25:6600,s26:0,o24:191,o25:120,o26:0},
-{m:7,month:'Jul',branch:'Muroor',channel:'Online Web',s24:9358,s25:6127,s26:0,o24:176,o25:125,o26:0},
-{m:8,month:'Aug',branch:'Muroor',channel:'Online Web',s24:8392,s25:5884,s26:0,o24:157,o25:116,o26:0},
-{m:9,month:'Sep',branch:'Muroor',channel:'Online Web',s24:7504,s25:6668,s26:0,o24:146,o25:119,o26:0},
-{m:10,month:'Oct',branch:'Muroor',channel:'Online Web',s24:5777,s25:5435,s26:0,o24:146,o25:89,o26:0},
-{m:11,month:'Nov',branch:'Muroor',channel:'Online Web',s24:6152,s25:0,s26:0,o24:116,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Muroor',channel:'Online Web',s24:8064,s25:0,s26:0,o24:119,o25:0,o26:0},
-
-// Electra — all zeros (12 months each channel)
-{m:1,month:'Jan',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:10,month:'Oct',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:11,month:'Nov',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Electra',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:1,month:'Jan',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:10,month:'Oct',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:11,month:'Nov',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Electra',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-
-// Al Barsha — Self Delivery
-{m:1,month:'Jan',branch:'Al Barsha',channel:'Self Delivery',s24:30120,s25:55752,s26:0,o24:802,o25:1726,o26:0},
-{m:2,month:'Feb',branch:'Al Barsha',channel:'Self Delivery',s24:33556,s25:51699,s26:0,o24:928,o25:1527,o26:0},
-{m:3,month:'Mar',branch:'Al Barsha',channel:'Self Delivery',s24:30722,s25:42075,s26:0,o24:928,o25:1427,o26:0},
-{m:4,month:'Apr',branch:'Al Barsha',channel:'Self Delivery',s24:40737,s25:61422,s26:0,o24:1173,o25:1816,o26:0},
-{m:5,month:'May',branch:'Al Barsha',channel:'Self Delivery',s24:50460,s25:36988,s26:0,o24:1487,o25:881,o26:0},
-{m:6,month:'Jun',branch:'Al Barsha',channel:'Self Delivery',s24:48778,s25:41436,s26:0,o24:1488,o25:891,o26:0},
-{m:7,month:'Jul',branch:'Al Barsha',channel:'Self Delivery',s24:56252,s25:44627,s26:0,o24:1740,o25:1007,o26:0},
-{m:8,month:'Aug',branch:'Al Barsha',channel:'Self Delivery',s24:54008,s25:49296,s26:0,o24:1813,o25:901,o26:0},
-{m:9,month:'Sep',branch:'Al Barsha',channel:'Self Delivery',s24:54921,s25:43361,s26:0,o24:1749,o25:879,o26:0},
-{m:10,month:'Oct',branch:'Al Barsha',channel:'Self Delivery',s24:55783,s25:44819,s26:0,o24:1894,o25:850,o26:0},
-{m:11,month:'Nov',branch:'Al Barsha',channel:'Self Delivery',s24:44274,s25:0,s26:0,o24:1595,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Barsha',channel:'Self Delivery',s24:48203,s25:0,s26:0,o24:1424,o25:0,o26:0},
-// Al Barsha — Online Web
-{m:1,month:'Jan',branch:'Al Barsha',channel:'Online Web',s24:19348,s25:8325,s26:0,o24:365,o25:156,o26:0},
-{m:2,month:'Feb',branch:'Al Barsha',channel:'Online Web',s24:16597,s25:8977,s26:0,o24:304,o25:178,o26:0},
-{m:3,month:'Mar',branch:'Al Barsha',channel:'Online Web',s24:14043,s25:4816,s26:0,o24:243,o25:98,o26:0},
-{m:4,month:'Apr',branch:'Al Barsha',channel:'Online Web',s24:12546,s25:9647,s26:0,o24:221,o25:181,o26:0},
-{m:5,month:'May',branch:'Al Barsha',channel:'Online Web',s24:16921,s25:9039,s26:0,o24:290,o25:176,o26:0},
-{m:6,month:'Jun',branch:'Al Barsha',channel:'Online Web',s24:17351,s25:7877,s26:0,o24:299,o25:161,o26:0},
-{m:7,month:'Jul',branch:'Al Barsha',channel:'Online Web',s24:14681,s25:8453,s26:0,o24:276,o25:173,o26:0},
-{m:8,month:'Aug',branch:'Al Barsha',channel:'Online Web',s24:13840,s25:7404,s26:0,o24:250,o25:159,o26:0},
-{m:9,month:'Sep',branch:'Al Barsha',channel:'Online Web',s24:12385,s25:8490,s26:0,o24:203,o25:167,o26:0},
-{m:10,month:'Oct',branch:'Al Barsha',channel:'Online Web',s24:10663,s25:7406,s26:0,o24:178,o25:122,o26:0},
-{m:11,month:'Nov',branch:'Al Barsha',channel:'Online Web',s24:12048,s25:0,s26:0,o24:214,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Barsha',channel:'Online Web',s24:9084,s25:0,s26:0,o24:171,o25:0,o26:0},
-
-// Al Satwa — Self Delivery
-{m:1,month:'Jan',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:26849,s26:0,o24:0,o25:818,o26:0},
-{m:2,month:'Feb',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:24349,s26:0,o24:0,o25:719,o26:0},
-{m:3,month:'Mar',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:21934,s26:0,o24:0,o25:645,o26:0},
-{m:4,month:'Apr',branch:'Al Satwa',channel:'Self Delivery',s24:0,s25:29154,s26:0,o24:0,o25:881,o26:0},
-{m:5,month:'May',branch:'Al Satwa',channel:'Self Delivery',s24:22337,s25:20631,s26:0,o24:555,o25:506,o26:0},
-{m:6,month:'Jun',branch:'Al Satwa',channel:'Self Delivery',s24:26665,s25:21005,s26:0,o24:684,o25:463,o26:0},
-{m:7,month:'Jul',branch:'Al Satwa',channel:'Self Delivery',s24:27671,s25:24685,s26:0,o24:795,o25:528,o26:0},
-{m:8,month:'Aug',branch:'Al Satwa',channel:'Self Delivery',s24:34732,s25:22476,s26:0,o24:965,o25:492,o26:0},
-{m:9,month:'Sep',branch:'Al Satwa',channel:'Self Delivery',s24:27068,s25:23066,s26:0,o24:799,o25:495,o26:0},
-{m:10,month:'Oct',branch:'Al Satwa',channel:'Self Delivery',s24:29957,s25:12773,s26:0,o24:831,o25:293,o26:0},
-{m:11,month:'Nov',branch:'Al Satwa',channel:'Self Delivery',s24:25687,s25:0,s26:0,o24:765,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Satwa',channel:'Self Delivery',s24:29521,s25:0,s26:0,o24:768,o25:0,o26:0},
-// Al Satwa — Online Web
-{m:1,month:'Jan',branch:'Al Satwa',channel:'Online Web',s24:0,s25:7572,s26:0,o24:0,o25:210,o26:0},
-{m:2,month:'Feb',branch:'Al Satwa',channel:'Online Web',s24:0,s25:9979,s26:0,o24:0,o25:240,o26:0},
-{m:3,month:'Mar',branch:'Al Satwa',channel:'Online Web',s24:0,s25:5832,s26:0,o24:0,o25:134,o26:0},
-{m:4,month:'Apr',branch:'Al Satwa',channel:'Online Web',s24:0,s25:11509,s26:0,o24:0,o25:283,o26:0},
-{m:5,month:'May',branch:'Al Satwa',channel:'Online Web',s24:569,s25:13388,s26:0,o24:15,o25:348,o26:0},
-{m:6,month:'Jun',branch:'Al Satwa',channel:'Online Web',s24:6303,s25:13815,s26:0,o24:148,o25:343,o26:0},
-{m:7,month:'Jul',branch:'Al Satwa',channel:'Online Web',s24:9685,s25:18083,s26:0,o24:234,o25:484,o26:0},
-{m:8,month:'Aug',branch:'Al Satwa',channel:'Online Web',s24:11818,s25:14903,s26:0,o24:299,o25:387,o26:0},
-{m:9,month:'Sep',branch:'Al Satwa',channel:'Online Web',s24:8026,s25:15232,s26:0,o24:177,o25:376,o26:0},
-{m:10,month:'Oct',branch:'Al Satwa',channel:'Online Web',s24:9119,s25:11183,s26:0,o24:225,o25:288,o26:0},
-{m:11,month:'Nov',branch:'Al Satwa',channel:'Online Web',s24:8731,s25:0,s26:0,o24:216,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Satwa',channel:'Online Web',s24:9441,s25:0,s26:0,o24:216,o25:0,o26:0},
-
-// Al Rigga — Self Delivery
-{m:1,month:'Jan',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:1993,s26:0,o24:0,o25:45,o26:0},
-{m:10,month:'Oct',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:14634.9,s26:0,o24:0,o25:332,o26:0},
-{m:11,month:'Nov',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Rigga',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-// Al Rigga — Online Web
-{m:1,month:'Jan',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:10,month:'Oct',branch:'Al Rigga',channel:'Online Web',s24:0,s25:2076,s26:0,o24:0,o25:62,o26:0},
-{m:11,month:'Nov',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Al Rigga',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-
-// Sharja — all zeros
-{m:1,month:'Jan',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:10,month:'Oct',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:11,month:'Nov',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Sharja',channel:'Self Delivery',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:1,month:'Jan',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:2,month:'Feb',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:3,month:'Mar',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:4,month:'Apr',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:5,month:'May',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:6,month:'Jun',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:7,month:'Jul',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:8,month:'Aug',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:9,month:'Sep',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:10,month:'Oct',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:11,month:'Nov',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0},
-{m:12,month:'Dec',branch:'Sharja',channel:'Online Web',s24:0,s25:0,s26:0,o24:0,o25:0,o26:0}
-];
-
-// ======= Helper functions =======
-function fmtCurrency(n){ return Number(n).toLocaleString('en-AE', {style:'currency', currency:'AED'}); }
-function fmtNumber(n){ return Number(n).toLocaleString(); }
-function sum(arr, key){ return arr.reduce((s,x)=>s + (Number(x[key])||0),0); }
-function unique(arr, key){ return [...new Set(arr.map(r=>r[key]))]; }
-function calculateGrowth(current, previous) {
-  if (previous === 0) return current === 0 ? 0 : 100;
-  return ((current - previous) / previous * 100).toFixed(1);
-}
-
-// ======= Build branch select options =======
-const branches = unique(DATA_ROWS,'branch');
-const branchSelect = document.getElementById('branchSelect');
-branchSelect.innerHTML = '<option value="all">All Branches</option>' + branches.map(b=>`<option>${b}</option>`).join('');
-branchSelect.value = 'all';
-
-// ======= Build table =======
-function buildTable(filterBranch, filterChannel, searchTerm = ''){
-  const table = document.getElementById('dataTable');
-  const thead = `
-    <tr>
-      <th>Month</th>
-      <th>Branch</th>
-      <th>Channel</th>
-      <th>Sales 2024</th>
-      <th>Sales 2025</th>
-      <th>Sales 2026</th>
-      <th>Δ Sales</th>
-      <th>Orders 2024</th>
-      <th>Orders 2025</th>
-      <th>Orders 2026</th>
-      <th>Δ Orders</th>
-      <th>AOV 2024</th>
-      <th>AOV 2025</th>
-      <th>AOV 2026</th>
-      <th>Actions</th>
-    </tr>
-  `;
-  
-  let rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
-  
-  // Apply search filter
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    rows = rows.filter(r => 
-      r.month.toLowerCase().includes(term) || 
-      r.branch.toLowerCase().includes(term) || 
-      r.channel.toLowerCase().includes(term)
-    );
-  }
-  
-  const tbody = rows.map((r, index) => {
-    const salesDiff25 = r.s25 - r.s24;
-    const salesDiff26 = r.s26 - r.s25;
-    const ordersDiff25 = r.o25 - r.o24;
-    const ordersDiff26 = r.o26 - r.o25;
-    
-    const salesDiffClass25 = salesDiff25 > 0 ? 'green' : salesDiff25 < 0 ? 'red' : '';
-    const salesDiffClass26 = salesDiff26 > 0 ? 'green' : salesDiff26 < 0 ? 'red' : '';
-    const ordersDiffClass25 = ordersDiff25 > 0 ? 'green' : ordersDiff25 < 0 ? 'red' : '';
-    const ordersDiffClass26 = ordersDiff26 > 0 ? 'green' : ordersDiff26 < 0 ? 'red' : '';
-    
-    const aov24 = r.o24 ? fmtCurrency(r.s24/r.o24) : '-';
-    const aov25 = r.o25 ? fmtCurrency(r.s25/r.o25) : '-';
-    const aov26 = r.o26 ? fmtCurrency(r.s26/r.o26) : '-';
-    
-    return `
-      <tr data-index="${index}">
-        <td>${r.month}</td>
-        <td>${r.branch}</td>
-        <td>${r.channel}</td>
-        <td>${fmtCurrency(r.s24)}</td>
-        <td>${fmtCurrency(r.s25)}</td>
-        <td>${fmtCurrency(r.s26)}</td>
-        <td class="${salesDiffClass26}">${salesDiff26 > 0 ? '+' : ''}${fmtCurrency(salesDiff26)}</td>
-        <td>${fmtNumber(r.o24)}</td>
-        <td>${fmtNumber(r.o25)}</td>
-        <td>${fmtNumber(r.o26)}</td>
-        <td class="${ordersDiffClass26}">${ordersDiff26 > 0 ? '+' : ''}${fmtNumber(ordersDiff26)}</td>
-        <td>${aov24}</td>
-        <td>${aov25}</td>
-        <td>${aov26}</td>
-        <td>
-          <button class="edit-btn" onclick="editRow(${index})">Edit</button>
-          <button class="delete-btn" onclick="deleteRow(${index})">Delete</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-  
-  table.querySelector('thead').innerHTML = thead;
-  table.querySelector('tbody').innerHTML = tbody;
-}
-
-// ======= Aggregations & KPIs =======
-function updateKPIs(filterBranch, filterChannel){
-  const rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
-  const totalS24 = sum(rows,'s24');
-  const totalS25 = sum(rows,'s25');
-  const totalS26 = sum(rows,'s26');
-  const totalO24 = sum(rows,'o24');
-  const totalO25 = sum(rows,'o25');
-  const totalO26 = sum(rows,'o26');
-  
-  document.getElementById('tot24').textContent = fmtCurrency(totalS24);
-  document.getElementById('tot25').textContent = fmtCurrency(totalS25);
-  document.getElementById('tot26').textContent = fmtCurrency(totalS26);
-  document.getElementById('ord24').textContent = fmtNumber(totalO24);
-  document.getElementById('ord25').textContent = fmtNumber(totalO25);
-  document.getElementById('ord26').textContent = fmtNumber(totalO26);
-  
-  // Calculate growth rates
-  const salesGrowth = calculateGrowth(totalS25, totalS24);
-  const orderGrowth = calculateGrowth(totalO25, totalO24);
-  const salesGrowth26 = calculateGrowth(totalS26, totalS25);
-  const orderGrowth26 = calculateGrowth(totalO26, totalO25);
-  
-  document.getElementById('salesGrowth').textContent = `${salesGrowth}%`;
-  document.getElementById('orderGrowth').textContent = `${orderGrowth}%`;
-  document.getElementById('salesGrowth26').textContent = `${salesGrowth26}%`;
-  document.getElementById('orderGrowth26').textContent = `${orderGrowth26}%`;
-  
-  // Calculate average AOV
-  const avgAOV24 = totalO24 > 0 ? totalS24 / totalO24 : 0;
-  const avgAOV25 = totalO25 > 0 ? totalS25 / totalO25 : 0;
-  const avgAOV26 = totalO26 > 0 ? totalS26 / totalO26 : 0;
-  
-  document.getElementById('avgAOV24').textContent = fmtCurrency(avgAOV24);
-  document.getElementById('avgAOV26').textContent = fmtCurrency(avgAOV26);
-  
-  // Color code KPIs
-  document.getElementById('tot24').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
-  document.getElementById('tot25').className = salesGrowth > 0 ? 'green' : salesGrowth < 0 ? 'red' : '';
-  document.getElementById('tot26').className = salesGrowth26 > 0 ? 'green' : salesGrowth26 < 0 ? 'red' : '';
-  document.getElementById('ord24').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
-  document.getElementById('ord25').className = orderGrowth > 0 ? 'green' : orderGrowth < 0 ? 'red' : '';
-  document.getElementById('ord26').className = orderGrowth26 > 0 ? 'green' : orderGrowth26 < 0 ? 'red' : '';
-  
-  // Update scorecards
-  updateScorecards(filterBranch, filterChannel);
-}
-
-// ======= Scorecards =======
-function updateScorecards(filterBranch, filterChannel) {
-  const rows = DATA_ROWS.filter(r=> (filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel));
-  
-  // Find best performer by total sales
-  const branchSales = {};
-  rows.forEach(r => {
-    if (!branchSales[r.branch]) branchSales[r.branch] = 0;
-    branchSales[r.branch] += r.s26;
-  });
-  
-  const bestBranch = Object.keys(branchSales).reduce((a, b) => 
-    branchSales[a] > branchSales[b] ? a : b, '');
-  document.getElementById('bestBranch').textContent = bestBranch || '-';
-  
-  // Find growth leader
-  const branchGrowth = {};
-  rows.forEach(r => {
-    if (!branchGrowth[r.branch]) branchGrowth[r.branch] = {s24: 0, s25: 0, s26: 0};
-    branchGrowth[r.branch].s24 += r.s24;
-    branchGrowth[r.branch].s25 += r.s25;
-    branchGrowth[r.branch].s26 += r.s26;
-  });
-  
-  let maxGrowth = 0;
-  let growthLeader = '-';
-  Object.keys(branchGrowth).forEach(branch => {
-    const growth = calculateGrowth(branchGrowth[branch].s26, branchGrowth[branch].s25);
-    if (growth > maxGrowth) {
-      maxGrowth = growth;
-      growthLeader = branch;
-    }
-  });
-  document.getElementById('growthLeader').textContent = growthLeader;
-  
-  // Find efficiency champion (best AOV)
-  const branchAOV = {};
-  rows.forEach(r => {
-    if (!branchAOV[r.branch]) branchAOV[r.branch] = {sales: 0, orders: 0};
-    branchAOV[r.branch].sales += r.s26;
-    branchAOV[r.branch].orders += r.o26;
-  });
-  
-  let bestAOV = 0;
-  let efficiencyChamp = '-';
-  Object.keys(branchAOV).forEach(branch => {
-    const aov = branchAOV[branch].orders > 0 ? 
-      branchAOV[branch].sales / branchAOV[branch].orders : 0;
-    if (aov > bestAOV) {
-      bestAOV = aov;
-      efficiencyChamp = branch;
-    }
-  });
-  document.getElementById('efficiencyChamp').textContent = efficiencyChamp;
-  
-  // Calculate 2026 potential (projected growth)
-  const totalSales2024 = sum(rows, 's24');
-  const totalSales2025 = sum(rows, 's25');
-  const totalSales2026 = sum(rows, 's26');
-  
-  const avgGrowthRate = calculateGrowth(totalSales2025, totalSales2024);
-  const projectedGrowth = calculateGrowth(totalSales2026, totalSales2025);
-  
-  let potential = 'Stable';
-  if (projectedGrowth > avgGrowthRate + 5) potential = 'High';
-  else if (projectedGrowth < avgGrowthRate - 5) potential = 'Low';
-  
-  document.getElementById('potential2026').textContent = potential;
-}
-
-// ======= Charts =======
-let trendChart, stackChart, branchChart, channelChart, monthlyChart, yoyChart;
-function renderCharts(filterBranch, filterChannel, metric){
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthly24 = Array(12).fill(0);
-  const monthly25 = Array(12).fill(0);
-  const monthly26 = Array(12).fill(0);
-
-  DATA_ROWS.forEach(r=>{
-    if((filterBranch==='all' || r.branch===filterBranch) && (filterChannel==='all' || r.channel===filterChannel)){
-      const idx = r.m-1;
-      if(metric==='sales'){ 
-        monthly24[idx] += Number(r.s24)||0; 
-        monthly25[idx] += Number(r.s25)||0; 
-        monthly26[idx] += Number(r.s26)||0; 
-      } else { 
-        monthly24[idx] += Number(r.o24)||0; 
-        monthly25[idx] += Number(r.o25)||0; 
-        monthly26[idx] += Number(r.o26)||0; 
-      }
-    }
-  });
-
-  // Destroy existing charts
-  if (trendChart) trendChart.destroy();
-  if (stackChart) stackChart.destroy();
-  if (branchChart) branchChart.destroy();
-  if (channelChart) channelChart.destroy();
-  if (monthlyChart) monthlyChart.destroy();
-  if (yoyChart) yoyChart.destroy();
-  
-  // Trend Chart
-  const ctx = document.getElementById('trendChart');
-  trendChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [
-        {
-          label: metric === 'sales' ? 'Sales 2024' : 'Orders 2024',
-          data: monthly24,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.3,
-          fill: true
-        },
-        {
-          label: metric === 'sales' ? 'Sales 2025' : 'Orders 2025',
-          data: monthly25,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          tension: 0.3,
-          fill: true
-        },
-        {
-          label: metric === 'sales' ? 'Sales 2026' : 'Orders 2026',
-          data: monthly26,
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-          tension: 0.3,
-          fill: true
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+N - Add new staff
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    openAddModal();
+                }
+                // Ctrl+Q - Quick add
+                else if (e.ctrlKey && e.key === 'q') {
+                    e.preventDefault();
+                    openQuickAddModal();
+                }
+                // Ctrl+E - Export to CSV
+                else if (e.ctrlKey && e.key === 'e') {
+                    e.preventDefault();
+                    exportToCSV();
+                }
+                // Ctrl+P - Print
+                else if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    window.print();
+                }
+                // Ctrl+I - Import all data
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    importAllData();
+                }
+                // Ctrl+S - Save
+                else if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    const modal = document.querySelector('.modal-overlay.open');
+                    if (modal && modal.id === 'staffModal') {
+                        saveStaff();
+                    }
+                }
+                // Esc - Close modal
+                else if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.open').forEach(modal => {
+                        modal.classList.remove('open');
+                    });
+                }
+            });
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: metric === 'sales' ? 'Sales Trend' : 'Orders Trend'
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem(STORAGE_KEY_THEME, newTheme);
+            updateThemeIcon(newTheme);
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return metric === 'sales' ? fmtCurrency(value) : value;
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function loadData() {
+            console.log("Loading data from localStorage...");
+            
+            const storedEmp = localStorage.getItem(STORAGE_KEY_EMP);
+            const storedBr = localStorage.getItem(STORAGE_KEY_BR);
+
+            if (storedEmp) {
+                console.log("Found existing employee data");
+                employees = JSON.parse(storedEmp);
+                // Check if all data has been imported
+                allDataImported = employees.length >= 169;
+                console.log(`Loaded ${employees.length} employees, allDataImported: ${allDataImported}`);
+            } else {
+                console.log("No existing data, starting with sample data");
+                // Start with sample data - 20 employees for testing
+                employees = [
+                    { 
+                        id: "STF001", name: "MOHAMMED TAYSEER", nationality: "JORDANIAN", gender: "Male", 
+                        designation: "MANAGER ADMINISTRATION", idNumber: "784198168526303", 
+                        joiningDate: "2016-04-16", passportNumber: "", passportExpiry: "2026-08-09", 
+                        idVisaExpiry: "", branch: "CC Hamdan St", 
+                        cv: true, photos: 5, passportReceived: false, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-09",
+                        insurance: "valid", notes: "Manager - Missing passport"
+                    },
+                    { 
+                        id: "STF002", name: "ZAKARIA MOHAMMAD NEMER HAMMAD", nationality: "JORDANIAN", 
+                        gender: "Male", designation: "ASSISTANT MANAGER", idNumber: "784198520265962", 
+                        joiningDate: "2016-07-24", passportNumber: "", passportExpiry: "2026-08-07", 
+                        idVisaExpiry: "", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: false, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-07",
+                        insurance: "valid", notes: "Assistant Manager"
+                    },
+                    { 
+                        id: "STF003", name: "AHMAD JUMAH HASAN OTHMAN", nationality: "JORDANIAN", 
+                        gender: "Male", designation: "SUPERVISOR", idNumber: "784199413049059", 
+                        joiningDate: "2016-07-24", passportNumber: "", passportExpiry: "2026-08-14", 
+                        idVisaExpiry: "", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: false, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-14",
+                        insurance: "valid", notes: "Supervisor"
+                    },
+                    { 
+                        id: "STF005", name: "ARJAY HIZON PALCONIT", nationality: "PHILIPPINES", 
+                        gender: "Male", designation: "WAITERS FOOD", idNumber: "784198470839733", 
+                        joiningDate: "2016-07-23", passportNumber: "P6143130B", passportExpiry: "2031-01-20", 
+                        idVisaExpiry: "2026-08-23", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-23",
+                        insurance: "valid", notes: "Working fine - All documents complete"
+                    },
+                    { 
+                        id: "STF006", name: "DENNIS VIDAL OLICIA", nationality: "PHILIPPINES", 
+                        gender: "Male", designation: "WAITERS FOOD", idNumber: "784198204098358", 
+                        joiningDate: "2016-07-24", passportNumber: "P3973729B", passportExpiry: "2029-11-25", 
+                        idVisaExpiry: "2026-08-23", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-23",
+                        insurance: "valid", notes: "Working fine"
+                    },
+                    { 
+                        id: "STF007", name: "JOMAR CARREON BALTAZAR", nationality: "PHILIPPINES", 
+                        gender: "Male", designation: "GRILLED CHICKEN MAKER", idNumber: "784199076464652", 
+                        joiningDate: "2016-07-23", passportNumber: "P5533971B", passportExpiry: "2030-09-20", 
+                        idVisaExpiry: "2026-08-23", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2026-08-23",
+                        insurance: "valid", notes: "Working fine"
+                    },
+                    { 
+                        id: "STF008", name: "MOHAMED IRSHAD ALAM MOHAMMED ISHAQUE", nationality: "INDIAN", 
+                        gender: "Male", designation: "SALES SUPERVISOR", idNumber: "784198975272042", 
+                        joiningDate: "2018-11-24", passportNumber: "N8620185", passportExpiry: "2026-03-29", 
+                        idVisaExpiry: "2024-12-01", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2024-12-01",
+                        insurance: "valid", notes: "Visa expired - Needs renewal"
+                    },
+                    { 
+                        id: "STF009", name: "MOHAMMED IRFAN IQBAL HUSSAIN", nationality: "INDIAN", 
+                        gender: "Male", designation: "WAITER", idNumber: "784199547387698", 
+                        joiningDate: "2018-12-19", passportNumber: "W9754592", passportExpiry: "2033-09-18", 
+                        idVisaExpiry: "2025-02-14", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2025-02-14",
+                        insurance: "valid", notes: "Working fine"
+                    },
+                    { 
+                        id: "STF010", name: "SAMEERA MALITH SUDASINGHE", nationality: "SRILANKA", 
+                        gender: "Male", designation: "GRILLED CHICKEN MAKER", idNumber: "784198752190466", 
+                        joiningDate: "2018-12-22", passportNumber: "N7647850", passportExpiry: "2028-02-19", 
+                        idVisaExpiry: "2025-01-26", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2025-01-26",
+                        insurance: "valid", notes: "Working fine"
+                    },
+                    { 
+                        id: "STF011", name: "JEFREY BAUTISTA NALUZ", nationality: "FILIPINO", 
+                        gender: "Male", designation: "CLEANING WORKER", idNumber: "784198326057134", 
+                        joiningDate: "2019-02-17", passportNumber: "P8671211A", passportExpiry: "2028-09-07", 
+                        idVisaExpiry: "2025-03-14", branch: "CC Hamdan St",
+                        cv: true, photos: 5, passportReceived: true, tipCenter: true, 
+                        offerLetter: true, contractSigned: true, medicalExpiry: "2025-03-14",
+                        insurance: "valid", notes: "Working fine"
+                    }
+                ];
+                allDataImported = false;
             }
-          }
-        }
-      }
-    }
-  });
 
-  // Stacked Chart
-  const ctx2 = document.getElementById('stackChart');
-  const branchesList = (filterBranch==='all')? unique(DATA_ROWS,'branch'):[filterBranch];
-  const selfDeliveryData = branchesList.map(b => 
-    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Self Delivery'), metric === 'sales' ? 's26' : 'o26')
-  );
-  const onlineWebData = branchesList.map(b => 
-    sum(DATA_ROWS.filter(r => r.branch === b && r.channel === 'Online Web'), metric === 'sales' ? 's26' : 'o26')
-  );
-  
-  stackChart = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-      labels: branchesList,
-      datasets: [
-        {
-          label: 'Self Delivery',
-          data: selfDeliveryData,
-          backgroundColor: '#4f46e5'
-        },
-        {
-          label: 'Online Web',
-          data: onlineWebData,
-          backgroundColor: '#06b6d4'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: metric === 'sales' ? 'Sales by Channel (2026)' : 'Orders by Channel (2026)'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return metric === 'sales' ? fmtCurrency(value) : value;
+            if (storedBr) {
+                branches = JSON.parse(storedBr);
             }
-          }
+            
+            saveData();
+            console.log("Data loading complete");
         }
-      }
-    }
-  });
-  
-  // Branch Performance Chart
-  const ctx3 = document.getElementById('branchChart');
-  const branchSales2024 = {};
-  const branchSales2025 = {};
-  const branchSales2026 = {};
-  
-  DATA_ROWS.forEach(r => {
-    if (!branchSales2024[r.branch]) branchSales2024[r.branch] = 0;
-    if (!branchSales2025[r.branch]) branchSales2025[r.branch] = 0;
-    if (!branchSales2026[r.branch]) branchSales2026[r.branch] = 0;
-    branchSales2024[r.branch] += r.s24;
-    branchSales2025[r.branch] += r.s25;
-    branchSales2026[r.branch] += r.s26;
-  });
-  
-  branchChart = new Chart(ctx3, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(branchSales2024),
-      datasets: [
-        {
-          label: '2024',
-          data: Object.values(branchSales2024),
-          backgroundColor: '#3b82f6'
-        },
-        {
-          label: '2025',
-          data: Object.values(branchSales2025),
-          backgroundColor: '#10b981'
-        },
-        {
-          label: '2026',
-          data: Object.values(branchSales2026),
-          backgroundColor: '#f59e0b'
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY_EMP, JSON.stringify(employees));
+            localStorage.setItem(STORAGE_KEY_BR, JSON.stringify(branches));
+            console.log("Data saved to localStorage");
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Branch Sales Comparison'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return fmtCurrency(value);
+
+        function resetData() {
+            if(confirm("Reset all data to defaults? This will remove all imported data.")) {
+                localStorage.removeItem(STORAGE_KEY_EMP);
+                localStorage.removeItem(STORAGE_KEY_BR);
+                allDataImported = false;
+                location.reload();
             }
-          }
         }
-      }
-    }
-  });
-  
-  // Channel Distribution Chart
-  const ctx4 = document.getElementById('channelChart');
-  const channelSales2026 = {
-    'Self Delivery': sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's26'),
-    'Online Web': sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's26')
-  };
-  
-  channelChart = new Chart(ctx4, {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(channelSales2026),
-      datasets: [{
-        data: Object.values(channelSales2026),
-        backgroundColor: ['#4f46e5', '#06b6d4']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Sales Distribution by Channel'
-        },
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  });
-  
-  // Monthly Trends Chart
-  const ctx5 = document.getElementById('monthlyChart');
-  const monthlyTrend2024 = {};
-  const monthlyTrend2025 = {};
-  const monthlyTrend2026 = {};
-  
-  months.forEach(month => {
-    monthlyTrend2024[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's24');
-    monthlyTrend2025[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's25');
-    monthlyTrend2026[month] = sum(DATA_ROWS.filter(r => r.month === month && r.channel === 'Self Delivery'), 's26');
-  });
-  
-  monthlyChart = new Chart(ctx5, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [
-        {
-          label: '2024',
-          data: Object.values(monthlyTrend2024),
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.3
-        },
-        {
-          label: '2025',
-          data: Object.values(monthlyTrend2025),
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          tension: 0.3
-        },
-        {
-          label: '2026',
-          data: Object.values(monthlyTrend2026),
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Monthly Sales Trends'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return fmtCurrency(value);
+
+        // --- IMPORT ALL DATA FUNCTION ---
+        function importAllData() {
+            if (allDataImported) {
+                showToast("All data has already been imported!", "info");
+                return;
             }
-          }
-        }
-      }
-    }
-  });
-  
-  // Year-over-Year Comparison Chart
-  const ctx6 = document.getElementById('yoyChart');
-  const yoyData25 = [];
-  const yoyData26 = [];
-  const yoyLabels = [];
-  
-  DATA_ROWS.forEach(r => {
-    if (r.s25 > 0) {
-      const growth25 = calculateGrowth(r.s25, r.s24);
-      yoyLabels.push(`${r.branch} - ${r.month}`);
-      yoyData25.push(growth25);
-    }
-  });
-  
-  DATA_ROWS.forEach(r => {
-    if (r.s26 > 0) {
-      const growth26 = calculateGrowth(r.s26, r.s25);
-      yoyData26.push(growth26);
-    }
-  });
-  
-  yoyChart = new Chart(ctx6, {
-    type: 'bar',
-    data: {
-      labels: yoyLabels,
-      datasets: [
-        {
-          label: 'YoY Growth 2025 (%)',
-          data: yoyData25,
-          backgroundColor: '#10b981'
-        },
-        {
-          label: 'YoY Growth 2026 (%)',
-          data: yoyData26,
-          backgroundColor: '#f59e0b'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Year-over-Year Growth Comparison'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return value + '%';
+            
+            if (confirm(`Import complete employee database with ${completeEmployeeData.length} records?\n\nThis will load all staff with their complete information.`)) {
+                // Show loading
+                const tbody = document.getElementById('employeeTableBody');
+                tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; padding: 40px;"><div class="spinner"></div><br>Importing complete employee database...</td></tr>';
+                
+                setTimeout(() => {
+                    console.log("Importing complete employee data...");
+                    
+                    // First, keep any existing staff to avoid duplicates
+                    const existingIds = employees.map(e => e.id);
+                    const newEmployees = completeEmployeeData.filter(emp => !existingIds.includes(emp.id));
+                    
+                    // Add all new employees with complete details
+                    newEmployees.forEach((emp, index) => {
+                        const newStaff = {
+                            ...emp,
+                            // Add default values for checklist
+                            cv: true,
+                            photos: 5,
+                            passportReceived: emp.passportNumber && emp.passportNumber !== "" && emp.passportNumber !== "استقالة",
+                            tipCenter: true,
+                            offerLetter: true,
+                            contractSigned: true,
+                            medicalExpiry: emp.idVisaExpiry,
+                            insurance: "valid",
+                            notes: ""
+                        };
+                        employees.push(newStaff);
+                    });
+                    
+                    allDataImported = employees.length >= 169;
+                    saveData();
+                    updateUI();
+                    showToast(`Successfully imported ${newEmployees.length} new employees! Total: ${employees.length}`, "success");
+                }, 1500);
             }
-          }
         }
-      }
-    }
-  });
-}
 
-// ======= Generate Insights =======
-function generateInsights() {
-  const insights = [];
-  
-  // Calculate overall performance
-  const totalSales2024 = sum(DATA_ROWS, 's24');
-  const totalSales2025 = sum(DATA_ROWS, 's25');
-  const totalSales2026 = sum(DATA_ROWS, 's26');
-  const salesGrowth = calculateGrowth(totalSales2025, totalSales2024);
-  const salesGrowth26 = calculateGrowth(totalSales2026, totalSales2025);
-  
-  if (salesGrowth26 > salesGrowth) {
-    insights.push({
-      title: 'Accelerating Growth',
-      description: `Sales growth increased from ${salesGrowth}% in 2025 to ${salesGrowth26}% in 2026, indicating positive business momentum.`
-    });
-  } else if (salesGrowth26 > 0) {
-    insights.push({
-      title: 'Positive Growth',
-      description: `Sales grew by ${salesGrowth26}% in 2026, continuing the positive trend from previous years.`
-    });
-  } else {
-    insights.push({
-      title: 'Sales Decline',
-      description: `Sales decreased by ${Math.abs(salesGrowth26)}% in 2026. Review marketing strategies and operational efficiency.`
-    });
-  }
-  
-  // Channel performance analysis
-  const selfDeliverySales2026 = sum(DATA_ROWS.filter(r => r.channel === 'Self Delivery'), 's26');
-  const onlineWebSales2026 = sum(DATA_ROWS.filter(r => r.channel === 'Online Web'), 's26');
-  
-  if (onlineWebSales2026 > selfDeliverySales2026) {
-    insights.push({
-      title: 'Online Web Dominance',
-      description: 'Online Web channel outperformed Self Delivery in 2026. Consider expanding online presence and digital marketing efforts.'
-    });
-  } else {
-    insights.push({
-      title: 'Self Delivery Strength',
-      description: 'Self Delivery channel remains stronger in 2026. Focus on optimizing in-store experience and customer service.'
-    });
-  }
-  
-  // Branch performance analysis
-  const branchPerformance = {};
-  DATA_ROWS.forEach(r => {
-    if (!branchPerformance[r.branch]) branchPerformance[r.branch] = {sales: 0, growth: 0};
-    branchPerformance[r.branch].sales += r.s26;
-  });
-  
-  const topBranch = Object.keys(branchPerformance).reduce((a, b) => 
-    branchPerformance[a].sales > branchPerformance[b].sales ? a : b, '');
-  
-  insights.push({
-    title: 'Top Performing Branch',
-    description: `${topBranch} leads in 2026 sales performance. Analyze best practices and consider replicating strategies across other branches.`
-  });
-  
-  // Seasonality analysis
-  const monthlyPerformance = {};
-  months.forEach(month => {
-    monthlyPerformance[month] = sum(DATA_ROWS.filter(r => r.month === month), 's26');
-  });
-  
-  const bestMonth = Object.keys(monthlyPerformance).reduce((a, b) => 
-    monthlyPerformance[a] > monthlyPerformance[b] ? a : b, '');
-  
-  insights.push({
-    title: 'Peak Performance Month',
-    description: `${bestMonth} shows the highest sales volume in 2026. Plan targeted promotions and resource allocation for this period.`
-  });
-  
-  // Render insights
-  const insightsList = document.getElementById('insightsList');
-  insightsList.innerHTML = insights.map(insight => `
-    <div class="insight-item">
-      <div class="insight-title">${insight.title}</div>
-      <div class="insight-description">${insight.description}</div>
-    </div>
-  `).join('');
-}
+        // --- CORE LOGIC ---
 
-// ======= UI interactions =======
-const channelSelect = document.getElementById('channelSelect');
-const metricSelect = document.getElementById('metricSelect');
-const searchBox = document.getElementById('searchBox');
-function refresh(){
-  const branch = branchSelect.value;
-  const channel = channelSelect.value;
-  const metric = metricSelect.value;
-  const searchTerm = searchBox.value;
-  buildTable(branch, channel, searchTerm);
-  updateKPIs(branch, channel);
-  renderCharts(branch, channel, metric);
-}
-branchSelect.onchange = refresh; 
-channelSelect.onchange = refresh; 
-metricSelect.onchange = refresh;
-searchBox.oninput = refresh;
+        function getEmployeeStatus(emp) {
+            const today = new Date();
+            
+            // Check for missing essential documents
+            const hasResignationNote = (emp.passportNumber && emp.passportNumber.includes("استقالة")) || 
+                                       (emp.notes && emp.notes.includes("استقالة"));
+            
+            if (hasResignationNote) {
+                return { 
+                    label: "Resigned", 
+                    class: "badge-danger", 
+                    isReady: false,
+                    severity: "resigned"
+                };
+            }
+            
+            const missingPassport = !emp.passportNumber || emp.passportNumber === "";
+            const missingIdVisaExpiry = !emp.idVisaExpiry || emp.idVisaExpiry === "";
+            const missingPassportExpiry = !emp.passportExpiry || emp.passportExpiry === "";
+            
+            if (missingPassport || missingIdVisaExpiry || missingPassportExpiry) {
+                return { 
+                    label: "Missing Docs", 
+                    class: "badge-danger", 
+                    isReady: false,
+                    severity: "missing"
+                };
+            }
+            
+            // Check expiry dates
+            let hasExpired = false;
+            let expiringSoon = false;
+            
+            if (emp.passportExpiry) {
+                const passDate = new Date(emp.passportExpiry);
+                const diffDays = Math.ceil((passDate - today) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 0) hasExpired = true;
+                else if (diffDays <= 30) expiringSoon = true;
+            }
+            
+            if (emp.idVisaExpiry) {
+                const visaDate = new Date(emp.idVisaExpiry);
+                const diffDays = Math.ceil((visaDate - today) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 0) hasExpired = true;
+                else if (diffDays <= 30) expiringSoon = true;
+            }
+            
+            if (hasExpired) {
+                return { 
+                    label: "Expired", 
+                    class: "badge-danger", 
+                    isReady: false,
+                    severity: "expired"
+                };
+            }
+            
+            if (expiringSoon) {
+                return { 
+                    label: "Expiring Soon", 
+                    class: "badge-warning", 
+                    isReady: false,
+                    severity: "warning"
+                };
+            }
+            
+            // All good
+            return { 
+                label: "Working Fine", 
+                class: "badge-ready", 
+                isReady: true,
+                severity: "ready"
+            };
+        }
 
-// Tab functionality
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    // Remove active class from all tabs and contents
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    // Add active class to clicked tab and corresponding content
-    tab.classList.add('active');
-    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
-  });
-});
+        function getMissingItems(emp) {
+            const missing = [];
+            
+            if (!emp.passportNumber || emp.passportNumber === "") {
+                missing.push("Passport");
+            }
+            
+            if (!emp.idVisaExpiry || emp.idVisaExpiry === "") {
+                missing.push("ID/Visa Expiry");
+            }
+            
+            if (!emp.passportExpiry || emp.passportExpiry === "") {
+                missing.push("Passport Expiry");
+            }
+            
+            if (emp.cv === false) {
+                missing.push("CV");
+            }
+            
+            if (emp.photos < 5) {
+                missing.push("Photos");
+            }
+            
+            if (emp.passportReceived === false) {
+                missing.push("Passport Copy");
+            }
+            
+            if (emp.offerLetter === false) {
+                missing.push("Offer Letter");
+            }
+            
+            if (emp.contractSigned === false) {
+                missing.push("Contract");
+            }
+            
+            if (emp.tipCenter === false) {
+                missing.push("Tip Center");
+            }
+            
+            // Check for resignation
+            if (emp.passportNumber && emp.passportNumber.includes("استقالة")) {
+                missing.push("RESIGNED");
+            }
+            
+            return missing;
+        }
 
-// initial render
-refresh();
+        function updateUI() {
+            console.log("Updating UI...");
+            renderBranches();
+            renderTable(employees);
+            updateStats();
+            updateMissingDocsSection();
+            
+            // Update import button
+            const importBtn = document.getElementById('importBtn');
+            if (allDataImported) {
+                importBtn.style.display = 'none';
+                document.querySelector('.btn-quick-add').style.display = 'none';
+            }
+            
+            console.log("UI update complete");
+        }
 
-// ======= Export CSV =======
-document.getElementById('exportCsv').onclick = function(){
-  const rows = DATA_ROWS;
-  let csv = 'Month,Branch,Channel,Sales2024,Sales2025,Sales2026,Orders2024,Orders2025,Orders2026,AOV2024,AOV2025,AOV2026\n';
-  rows.forEach(r=>{
-    const aov24 = r.o24 ? (r.s24/r.o24).toFixed(2) : '';
-    const aov25 = r.o25 ? (r.s25/r.o25).toFixed(2) : '';
-    const aov26 = r.o26 ? (r.s26/r.o26).toFixed(2) : '';
-    csv += `${r.month},${r.branch},${r.channel},${r.s24},${r.s25},${r.s26},${r.o24},${r.o25},${r.o26},${aov24},${aov25},${aov26}\n`;
-  });
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob); 
-  const a = document.createElement('a'); 
-  a.href=url; 
-  a.download='monthly_report.csv'; 
-  document.body.appendChild(a); 
-  a.click(); 
-  a.remove(); 
-  URL.revokeObjectURL(url);
-};
+        function updateStats() {
+            const total = employees.length;
+            let ready = 0;
+            let warning = 0;
+            let expired = 0;
+            let missing = 0;
+            let resigned = 0;
+            
+            employees.forEach(emp => {
+                const status = getEmployeeStatus(emp);
+                switch(status.severity) {
+                    case "ready": ready++; break;
+                    case "warning": warning++; break;
+                    case "expired": expired++; break;
+                    case "missing": missing++; break;
+                    case "resigned": resigned++; break;
+                }
+            });
+            
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('activeCount').innerText = ready;
+            document.getElementById('warningCount').innerText = warning;
+            document.getElementById('expiredCount').innerText = expired;
+            document.getElementById('missingCount').innerText = missing;
+            
+            console.log(`Stats updated: Total=${total}, Ready=${ready}, Warning=${warning}, Expired=${expired}, Missing=${missing}, Resigned=${resigned}`);
+        }
 
-// ======= Reset Data =======
-document.getElementById('resetData').onclick = function(){
-  if (confirm('Are you sure you want to reset all data?')) {
-    location.reload();
-  }
-};
+        function updateMissingDocsSection() {
+            let missingPassport = 0;
+            let missingVisaExpiry = 0;
+            let missingPassportExpiry = 0;
+            let missingCV = 0;
+            let missingPhotos = 0;
+            let missingContract = 0;
+            let resignedCount = 0;
+            
+            employees.forEach(emp => {
+                if (!emp.passportNumber || emp.passportNumber === "") missingPassport++;
+                if (!emp.idVisaExpiry || emp.idVisaExpiry === "") missingVisaExpiry++;
+                if (!emp.passportExpiry || emp.passportExpiry === "") missingPassportExpiry++;
+                if (emp.cv === false) missingCV++;
+                if (emp.photos < 5) missingPhotos++;
+                if (emp.contractSigned === false) missingContract++;
+                
+                // Check for resignation
+                if (emp.passportNumber && emp.passportNumber.includes("استقالة")) {
+                    resignedCount++;
+                }
+            });
+            
+            const totalMissing = missingPassport + missingVisaExpiry + missingPassportExpiry + 
+                                missingCV + missingPhotos + missingContract;
+            
+            if (totalMissing > 0 || resignedCount > 0) {
+                document.getElementById('missingDocsSection').style.display = 'block';
+                document.getElementById('missingTotalCount').innerText = totalMissing + resignedCount;
+                
+                const categories = [
+                    { name: "Passport", count: missingPassport },
+                    { name: "Visa Expiry", count: missingVisaExpiry },
+                    { name: "Passport Expiry", count: missingPassportExpiry },
+                    { name: "CV", count: missingCV },
+                    { name: "Photos", count: missingPhotos },
+                    { name: "Contract", count: missingContract },
+                    { name: "Resigned", count: resignedCount }
+                ];
+                
+                let html = '';
+                categories.forEach(cat => {
+                    if (cat.count > 0) {
+                        html += `
+                            <div class="missing-category">
+                                <div class="missing-category-name">${cat.name}</div>
+                                <div class="missing-category-count">${cat.count}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                document.getElementById('missingCategories').innerHTML = html;
+            } else {
+                document.getElementById('missingDocsSection').style.display = 'none';
+            }
+        }
 
-// ======= Generate Insights Button =======
-document.getElementById('generateInsights').onclick = generateInsights;
+        function renderBranches() {
+            console.log("Rendering branches...");
+            
+            const select = document.getElementById('inpBranch');
+            const branchFilter = document.getElementById('branchFilter');
+            const nationalityFilter = document.getElementById('nationalityFilter');
+            const quickBranch = document.getElementById('quickBranch');
+            
+            // Get unique nationalities from employees
+            const nationalities = [...new Set(employees.map(e => e.nationality).filter(n => n))];
+            
+            select.innerHTML = '<option value="">-- Select Branch --</option>';
+            branchFilter.innerHTML = '<option value="">All Branches</option>';
+            nationalityFilter.innerHTML = '<option value="">All Nationalities</option>';
+            quickBranch.innerHTML = '<option value="">-- Select Branch --</option>';
+            
+            branches.sort().forEach(b => { 
+                select.innerHTML += `<option value="${b}">${b}</option>`;
+                branchFilter.innerHTML += `<option value="${b}">${b}</option>`;
+                quickBranch.innerHTML += `<option value="${b}">${b}</option>`;
+            });
+            
+            nationalities.sort().forEach(n => {
+                nationalityFilter.innerHTML += `<option value="${n}">${n}</option>`;
+            });
 
-// ======= Export PDF =======
-document.getElementById('exportPDF').onclick = function(){
-  alert('PDF export functionality would be implemented here using a library like jsPDF');
-};
+            const list = document.getElementById('branchListDisplay');
+            list.innerHTML = '';
+            
+            if (branches.length === 0) {
+                list.innerHTML = '<li style="text-align: center; color: #999;">No branches added yet</li>';
+            } else {
+                branches.sort().forEach(b => {
+                    const staffCount = employees.filter(e => e.branch === b).length;
+                    list.innerHTML += `
+                        <li>
+                            <div>
+                                <strong>${b}</strong>
+                                <div style="font-size: 11px; color: #666; margin-top: 3px;">${staffCount} staff</div>
+                            </div>
+                            <button class="action-btn btn-del" onclick="deleteBranch('${b}')" title="Delete branch">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </li>
+                    `;
+                });
+            }
+            
+            console.log(`Branches rendered: ${branches.length}, Nationalities: ${nationalities.length}`);
+        }
 
-// ======= Export Excel =======
-document.getElementById('exportExcel').onclick = function(){
-  alert('Excel export functionality would be implemented here using a library like SheetJS');
-};
+        function renderTable(data) {
+            console.log(`Rendering table with ${data.length} employees...`);
+            
+            const tbody = document.getElementById('employeeTableBody');
+            tbody.innerHTML = '';
 
-// ======= Share Report =======
-document.getElementById('shareReport').onclick = function(){
-  if (navigator.share) {
-    navigator.share({
-      title: 'Sales Performance Report',
-      text: 'Check out our latest sales performance report',
-      url: window.location.href
-    });
-  } else {
-    alert('Share functionality would be implemented here with fallback options');
-  }
-};
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="14" style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">👨‍🍳</div>
+                            <h3>No Staff Records Found</h3>
+                            <p>Click "Import All Data" to load complete employee database or "Add Staff" to add new records.</p>
+                            <button class="btn-add" onclick="importAllData()" style="margin-top: 15px;">
+                                📥 Import Complete Database
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-// ======= Edit Row =======
-function editRow(index) {
-  const row = DATA_ROWS[index];
-  document.getElementById('newMonth').value = row.month;
-  document.getElementById('newBranch').value = row.branch;
-  document.getElementById('newChannel').value = row.channel;
-  document.getElementById('newS24').value = row.s24;
-  document.getElementById('newS25').value = row.s25;
-  document.getElementById('newS26').value = row.s26;
-  document.getElementById('newO24').value = row.o24;
-  document.getElementById('newO25').value = row.o25;
-  document.getElementById('newO26').value = row.o26;
-  
-  // Change button to update
-  const addBtn = document.getElementById('addDataBtn');
-  addBtn.textContent = 'Update Data';
-  addBtn.onclick = function() {
-    updateRow(index);
-  };
-  
-  // Scroll to form
-  document.querySelector('.add-data-form').scrollIntoView({ behavior: 'smooth' });
-}
+            data.forEach(emp => {
+                const status = getEmployeeStatus(emp);
+                const missingItems = getMissingItems(emp);
+                
+                const passExpStatus = getExpiryStatus(emp.passportExpiry);
+                const idExpStatus = getExpiryStatus(emp.idVisaExpiry);
 
-// ======= Update Row =======
-function updateRow(index) {
-  const month = document.getElementById('newMonth').value;
-  const branch = document.getElementById('newBranch').value;
-  const channel = document.getElementById('newChannel').value;
-  const s24 = Number(document.getElementById('newS24').value);
-  const s25 = Number(document.getElementById('newS25').value);
-  const s26 = Number(document.getElementById('newS26').value);
-  const o24 = Number(document.getElementById('newO24').value);
-  const o25 = Number(document.getElementById('newO25').value);
-  const o26 = Number(document.getElementById('newO26').value);
-  
-  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(s26) || isNaN(o24) || isNaN(o25) || isNaN(o26)) {
-    alert('Please fill all fields with valid values');
-    return;
-  }
-  
-  // Update data
-  DATA_ROWS[index] = {
-    ...DATA_ROWS[index],
-    month,
-    branch,
-    channel,
-    s24,
-    s25,
-    s26,
-    o24,
-    o25,
-    o26
-  };
-  
-  // Reset form
-  document.getElementById('newMonth').value = '';
-  document.getElementById('newBranch').value = '';
-  document.getElementById('newChannel').value = '';
-  document.getElementById('newS24').value = '';
-  document.getElementById('newS25').value = '';
-  document.getElementById('newS26').value = '';
-  document.getElementById('newO24').value = '';
-  document.getElementById('newO25').value = '';
-  document.getElementById('newO26').value = '';
-  
-  // Reset button
-  const addBtn = document.getElementById('addDataBtn');
-  addBtn.textContent = 'Add Data';
-  addBtn.onclick = addData;
-  
-  // Refresh dashboard
-  refresh();
-  showNotification('Data updated successfully!');
-}
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${emp.id}</strong></td>
+                    <td>${emp.name}</td>
+                    <td>${emp.nationality || '-'}</td>
+                    <td>${emp.gender || '-'}</td>
+                    <td>${emp.designation || '-'}</td>
+                    <td>${emp.joiningDate || '-'}</td>
+                    <td>${emp.idNumber || '-'}</td>
+                    <td>${emp.passportNumber || '-'}</td>
+                    <td>${emp.passportExpiry ? `<span class="${passExpStatus.class}">${passExpStatus.text}</span><br><small style="color:#aaa">${emp.passportExpiry}</small>` : '-'}</td>
+                    <td>${emp.idVisaExpiry ? `<span class="${idExpStatus.class}">${idExpStatus.text}</span><br><small style="color:#aaa">${emp.idVisaExpiry}</small>` : '-'}</td>
+                    <td>${emp.branch || '-'}</td>
+                    <td><span class="badge ${status.class}">${status.label}</span></td>
+                    <td>
+                        ${missingItems.length > 0 ? 
+                            `<small style="color: #dc3545; font-weight: 600;">${missingItems.join(', ')}</small>` : 
+                            '<span class="check-yes">✅</span>'
+                        }
+                    </td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editEmployee('${emp.id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn btn-del" onclick="deleteEmployee('${emp.id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            console.log(`Table rendered with ${data.length} rows`);
+        }
 
-// ======= Delete Row =======
-function deleteRow(index) {
-  if (confirm('Are you sure you want to delete this record?')) {
-    DATA_ROWS.splice(index, 1);
-    refresh();
-    showNotification('Data deleted successfully!');
-  }
-}
+        // --- FILTERING ---
+        function filterData() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const branchFilter = document.getElementById('branchFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const nationalityFilter = document.getElementById('nationalityFilter').value;
+            
+            console.log(`Filtering: query="${query}", branch="${branchFilter}", status="${statusFilter}", nationality="${nationalityFilter}"`);
+            
+            const filtered = employees.filter(emp => {
+                // Search query
+                const matchesSearch = !query || 
+                    (emp.id && emp.id.toLowerCase().includes(query)) || 
+                    (emp.name && emp.name.toLowerCase().includes(query)) || 
+                    (emp.nationality && emp.nationality.toLowerCase().includes(query)) ||
+                    (emp.designation && emp.designation.toLowerCase().includes(query)) ||
+                    (emp.passportNumber && emp.passportNumber.toLowerCase().includes(query));
+                
+                // Branch filter
+                const matchesBranch = !branchFilter || emp.branch === branchFilter;
+                
+                // Status filter
+                const status = getEmployeeStatus(emp);
+                const matchesStatus = !statusFilter || 
+                    (statusFilter === 'ready' && status.severity === 'ready') || 
+                    (statusFilter === 'warning' && status.severity === 'warning') || 
+                    (statusFilter === 'expired' && status.severity === 'expired') ||
+                    (statusFilter === 'missing' && status.severity === 'missing');
+                
+                // Nationality filter
+                const matchesNationality = !nationalityFilter || emp.nationality === nationalityFilter;
+                
+                return matchesSearch && matchesBranch && matchesStatus && matchesNationality;
+            });
+            
+            console.log(`Filtered to ${filtered.length} employees`);
+            renderTable(filtered);
+        }
 
-// ======= Add New Data =======
-function addData() {
-  const month = document.getElementById('newMonth').value;
-  const branch = document.getElementById('newBranch').value;
-  const channel = document.getElementById('newChannel').value;
-  const s24 = Number(document.getElementById('newS24').value);
-  const s25 = Number(document.getElementById('newS25').value);
-  const s26 = Number(document.getElementById('newS26').value);
-  const o24 = Number(document.getElementById('newO24').value);
-  const o25 = Number(document.getElementById('newO25').value);
-  const o26 = Number(document.getElementById('newO26').value);
-  
-  if (!month || !branch || !channel || isNaN(s24) || isNaN(s25) || isNaN(s26) || isNaN(o24) || isNaN(o25) || isNaN(o26)) {
-    alert('Please fill all fields with valid values');
-    return;
-  }
-  
-  // Add new data
-  DATA_ROWS.push({
-    m: new Date(`2024-${month}-01`).getMonth() + 1,
-    month,
-    branch,
-    channel,
-    s24,
-    s25,
-    s26,
-    o24,
-    o25,
-    o26
-  });
-  
-  // Update branches list if new branch
-  if (!branches.includes(branch)) {
-    branches.push(branch);
-    branchSelect.innerHTML = '<option value="all">All Branches</option>' + branches.map(b=>`<option>${b}</option>`).join('');
-  }
-  
-  // Reset form
-  document.getElementById('newMonth').value = '';
-  document.getElementById('newBranch').value = '';
-  document.getElementById('newChannel').value = '';
-  document.getElementById('newS24').value = '';
-  document.getElementById('newS25').value = '';
-  document.getElementById('newS26').value = '';
-  document.getElementById('newO24').value = '';
-  document.getElementById('newO25').value = '';
-  document.getElementById('newO26').value = '';
-  
-  // Refresh dashboard
-  refresh();
-  showNotification('Data added successfully!');
-}
+        // --- BRANCH ACTIONS ---
+        function openBranchModal() {
+            renderBranches();
+            openModal('branchModal');
+        }
 
-// ======= Add Data Button =======
-document.getElementById('addDataBtn').onclick = addData;
+        function addNewBranch() {
+            const input = document.getElementById('newBranchName');
+            const name = input.value.trim();
+            
+            if (!name) {
+                showToast("Please enter a branch name", "warning");
+                return;
+            }
+            
+            if (branches.includes(name)) {
+                showToast("Branch already exists", "warning");
+                return;
+            }
+            
+            branches.push(name);
+            saveData();
+            renderBranches();
+            input.value = '';
+            showToast("Branch added successfully", "success");
+        }
+        
+        function deleteBranch(name) {
+            if (confirm(`Delete branch "${name}"?`)) {
+                const staffInBranch = employees.filter(emp => emp.branch === name);
+                if (staffInBranch.length > 0) {
+                    showToast(`Cannot delete: ${staffInBranch.length} staff assigned to this branch`, "error");
+                    return;
+                }
+                
+                branches = branches.filter(b => b !== name);
+                saveData();
+                renderBranches();
+                showToast("Branch deleted successfully", "success");
+            }
+        }
 
-// ======= Notification System =======
-function showNotification(message, type = 'success') {
-  const notification = document.getElementById('notification');
-  notification.textContent = message;
-  notification.style.display = 'block';
-  
-  // Set background color based on type
-  if (type === 'success') {
-    notification.style.backgroundColor = '#10b981';
-  } else if (type === 'error') {
-    notification.style.backgroundColor = '#ef4444';
-  } else if (type === 'warning') {
-    notification.style.backgroundColor = '#f59e0b';
-  }
-  
-  setTimeout(() => {
-    notification.style.display = 'none';
-  }, 3000);
-}
-</script>
+        // --- STAFF MODAL ACTIONS ---
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "Add New Staff Member";
+            document.getElementById('editId').value = "";
+            document.getElementById('staffForm').reset();
+            
+            // Set default dates
+            const today = new Date();
+            const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+            document.getElementById('inpPassExp').value = formatDate(nextYear);
+            document.getElementById('inpIdVisaExp').value = formatDate(nextYear);
+            document.getElementById('inpMedicalExp').value = formatDate(nextYear);
+            document.getElementById('inpJoiningDate').value = formatDate(today);
+            
+            openModal('staffModal');
+        }
+        
+        function openQuickAddModal() {
+            renderBranches();
+            openModal('quickAddModal');
+        }
+        
+        function saveQuickStaff() {
+            const id = document.getElementById('quickId').value.trim();
+            const name = document.getElementById('quickName').value.trim();
+            const branch = document.getElementById('quickBranch').value;
+            
+            if (!id || !name || !branch) {
+                showToast("Please fill all required fields", "error");
+                return;
+            }
+            
+            if (employees.some(e => e.id === id)) {
+                showToast("Employee ID already exists", "error");
+                return;
+            }
+            
+            const newStaff = {
+                id: id,
+                name: name,
+                nationality: document.getElementById('quickNationality').value,
+                designation: document.getElementById('quickDesignation').value,
+                branch: branch,
+                joiningDate: formatDate(new Date()),
+                passportNumber: "",
+                passportExpiry: "",
+                idVisaExpiry: "",
+                cv: true,
+                photos: 5,
+                passportReceived: false,
+                tipCenter: true,
+                offerLetter: true,
+                contractSigned: true,
+                medicalExpiry: "",
+                insurance: "valid",
+                notes: ""
+            };
+            
+            employees.unshift(newStaff);
+            saveData();
+            filterData();
+            closeModal('quickAddModal');
+            showToast("Staff added successfully", "success");
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if(!emp) return;
+
+            document.getElementById('modalTitle').innerText = `Edit Staff: ${emp.name}`;
+            document.getElementById('editId').value = emp.id;
+
+            // Fill all fields
+            document.getElementById('inpId').value = emp.id;
+            document.getElementById('inpName').value = emp.name;
+            document.getElementById('inpNationality').value = emp.nationality || "";
+            document.getElementById('inpGender').value = emp.gender || "Male";
+            document.getElementById('inpDesignation').value = emp.designation || "";
+            document.getElementById('inpBranch').value = emp.branch || "";
+            document.getElementById('inpJoiningDate').value = emp.joiningDate || "";
+            document.getElementById('inpIdNumber').value = emp.idNumber || "";
+            document.getElementById('inpPassNum').value = emp.passportNumber || "";
+            document.getElementById('inpPassExp').value = emp.passportExpiry || "";
+            document.getElementById('inpIdVisaExp').value = emp.idVisaExpiry || "";
+            document.getElementById('inpMedicalExp').value = emp.medicalExpiry || "";
+            document.getElementById('inpNotes').value = emp.notes || "";
+            document.getElementById('inpPhotos').value = emp.photos || 0;
+            
+            // Checklist items
+            document.getElementById('inpCV').value = emp.cv ? "true" : "false";
+            document.getElementById('inpPassportReceived').value = emp.passportReceived ? "true" : "false";
+            document.getElementById('inpTipCenter').value = emp.tipCenter ? "true" : "false";
+            document.getElementById('inpOffer').value = emp.offerLetter ? "true" : "false";
+            document.getElementById('inpContract').value = emp.contractSigned ? "true" : "false";
+            document.getElementById('inpInsurance').value = emp.insurance || "valid";
+
+            openModal('staffModal');
+        }
+
+        function saveStaff() {
+            const editId = document.getElementById('editId').value;
+            const id = document.getElementById('inpId').value.trim();
+            const name = document.getElementById('inpName').value.trim();
+            const branch = document.getElementById('inpBranch').value;
+            
+            if (!id || !name || !branch) {
+                showToast("Please fill all required fields", "error");
+                return;
+            }
+
+            const formData = {
+                id: id, 
+                name: name,
+                nationality: document.getElementById('inpNationality').value,
+                gender: document.getElementById('inpGender').value,
+                designation: document.getElementById('inpDesignation').value,
+                branch: branch,
+                joiningDate: document.getElementById('inpJoiningDate').value,
+                idNumber: document.getElementById('inpIdNumber').value,
+                passportNumber: document.getElementById('inpPassNum').value,
+                passportExpiry: document.getElementById('inpPassExp').value,
+                idVisaExpiry: document.getElementById('inpIdVisaExp').value,
+                notes: document.getElementById('inpNotes').value,
+                
+                // Checklist items
+                cv: document.getElementById('inpCV').value === 'true',
+                photos: parseInt(document.getElementById('inpPhotos').value) || 0,
+                passportReceived: document.getElementById('inpPassportReceived').value === 'true',
+                tipCenter: document.getElementById('inpTipCenter').value === 'true',
+                offerLetter: document.getElementById('inpOffer').value === 'true',
+                contractSigned: document.getElementById('inpContract').value === 'true',
+                medicalExpiry: document.getElementById('inpMedicalExp').value,
+                insurance: document.getElementById('inpInsurance').value
+            };
+
+            if (editId) {
+                const index = employees.findIndex(e => e.id === editId);
+                if (index !== -1) { 
+                    employees[index] = formData; 
+                    showToast("Staff updated successfully", "success"); 
+                }
+            } else {
+                if (employees.some(e => e.id === id)) { 
+                    showToast("Employee ID already exists", "error"); 
+                    return; 
+                }
+                employees.unshift(formData);
+                showToast("Staff added successfully", "success");
+            }
+
+            saveData();
+            filterData();
+            closeModal('staffModal');
+        }
+
+        function deleteEmployee(id) {
+            if(confirm("Delete this employee record? This action cannot be undone.")) {
+                employees = employees.filter(e => e.id !== id);
+                saveData();
+                filterData();
+                showToast("Record deleted", "success");
+            }
+        }
+
+        // --- UTILITIES ---
+        function formatDate(date) {
+            if (!date) return '';
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function openModal(id) { 
+            document.getElementById(id).classList.add('open'); 
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('open'); 
+        }
+        
+        function showToast(msg, type = "success") {
+            const x = document.getElementById("toast"); 
+            x.innerText = msg; 
+            x.className = `toast show ${type}`;
+            
+            setTimeout(() => { 
+                x.className = x.className.replace("show", ""); 
+            }, 3000);
+        }
+
+        function getExpiryStatus(dateStr) {
+            if (!dateStr) return { text: '-', class: '' };
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const target = new Date(dateStr);
+            const diffTime = target - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 0) {
+                return { text: `EXPIRED`, class: 'date-expired' };
+            }
+            if (diffDays <= 30) {
+                return { text: `${diffDays} days`, class: 'date-warning' };
+            }
+            return { text: `${diffDays} days`, class: 'date-safe' }; 
+        }
+
+        function toggleColumnVisibility() {
+            alert("Column visibility toggle - This feature would allow you to show/hide specific columns in the table.");
+        }
+        
+        function sortByExpiry() {
+            // Sort employees by earliest expiry date
+            employees.sort((a, b) => {
+                const aDate = a.passportExpiry || a.idVisaExpiry || '9999-12-31';
+                const bDate = b.passportExpiry || b.idVisaExpiry || '9999-12-31';
+                return new Date(aDate) - new Date(bDate);
+            });
+            
+            saveData();
+            filterData();
+            showToast("Sorted by earliest expiry date", "success");
+        }
+        
+        function showHelp() {
+            alert(`CRISPY CHICKEN HR SYSTEM - COMPLETE VERSION
+
+📊 COMPLETE DATA IMPORT:
+• Click "📥 Import All Data" to load all employees
+• Complete employee database from Excel
+• All fields: Names, Nationality, Designation, Passport details, etc.
+
+⚠️ MISSING DOCUMENTS HEADLINE:
+• Shows total missing documents across all staff
+• Breaks down by category: Passport, Visa Expiry, CV, etc.
+• Helps identify compliance gaps quickly
+
+🏢 BRANCH MANAGEMENT:
+• View staff distribution across branches
+• Add/remove branches as needed
+• Branch-specific filtering
+
+📋 STATUS INDICATORS:
+• 🟢 Working Fine - All documents valid
+• 🟡 Expiring Soon - Documents expiring within 30 days
+• 🔴 Expired - Documents already expired
+• 🔴 Missing Docs - Essential documents missing
+• 🔴 Resigned - Staff with resignation notes
+
+⚡ QUICK ACTIONS:
+• Quick Add for fast staff entry
+• Bulk import of complete data
+• Email reports to management
+• Excel export for offline analysis
+
+💡 TIPS:
+• Most staff are working fine with no issues
+• Focus on "Missing Docs" and "Expiring Soon" sections
+• Use filters to focus on specific branches or nationalities`);
+        }
+        
+        function showSummary() {
+            const total = employees.length;
+            const ready = employees.filter(e => getEmployeeStatus(e).severity === 'ready').length;
+            const percentage = total > 0 ? Math.round((ready / total) * 100) : 0;
+            
+            alert(`HR SYSTEM SUMMARY:
+            
+Total Staff: ${total}
+Working Fine: ${ready} (${percentage}%)
+Expiring Soon: ${employees.filter(e => getEmployeeStatus(e).severity === 'warning').length}
+Expired Docs: ${employees.filter(e => getEmployeeStatus(e).severity === 'expired').length}
+Missing Docs: ${employees.filter(e => getEmployeeStatus(e).severity === 'missing').length}
+Resigned: ${employees.filter(e => getEmployeeStatus(e).severity === 'resigned').length}
+
+STATUS: ${percentage >= 90 ? '✅ EXCELLENT' : percentage >= 80 ? '⚠️ GOOD' : '❌ NEEDS ATTENTION'}
+Most staff are working with no issues.
+
+Next Actions:
+1. Review "Missing Docs" section
+2. Check "Expiring Soon" alerts
+3. Update any missing information
+4. Regular monthly checks recommended`);
+        }
+
+        function sendReportEmail() {
+            const total = employees.length;
+            const ready = employees.filter(e => getEmployeeStatus(e).severity === 'ready').length;
+            const warning = employees.filter(e => getEmployeeStatus(e).severity === 'warning').length;
+            const expired = employees.filter(e => getEmployeeStatus(e).severity === 'expired').length;
+            const missing = employees.filter(e => getEmployeeStatus(e).severity === 'missing').length;
+            const resigned = employees.filter(e => getEmployeeStatus(e).severity === 'resigned').length;
+            
+            const body = `CRISPY CHICKEN HR REPORT - ${new Date().toLocaleDateString()}
+
+SUMMARY:
+Total Staff: ${total}
+Working Fine: ${ready}
+Expiring Soon: ${warning}
+Expired Documents: ${expired}
+Missing Documents: ${missing}
+Resigned Staff: ${resigned}
+
+STATUS: ${ready >= total * 0.9 ? 'EXCELLENT - Most staff working with no issues' : 'REQUIRES ATTENTION - Some issues need resolution'}
+
+MISSING DOCUMENTS SUMMARY:
+- Check the HR system for detailed breakdown
+- Focus on documents marked as missing or expired
+
+RECOMMENDATIONS:
+1. Renew documents expiring within 30 days
+2. Collect missing passport copies
+3. Update visa expiry dates
+4. Regular monthly compliance check
+
+For detailed breakdown, please check the HR system.`;
+            
+            window.location.href = `mailto:mohammed.t@crispychicken.rest,kenawe@crispychicken.rest?subject=HR Report - ${new Date().toLocaleDateString()}&body=${encodeURIComponent(body)}`;
+            showToast("Email client opened with report", "success");
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID,Name,Nationality,Gender,Designation,Joining Date,ID Number,Passport Number,Passport Expiry,ID/Visa Expiry,Branch,Status,Missing Items\n";
+            employees.forEach(e => {
+                const status = getEmployeeStatus(e).label;
+                const missingItems = getMissingItems(e).join('; ');
+                const row = [
+                    e.id, e.name, e.nationality || '', e.gender || '', e.designation || '',
+                    e.joiningDate || '', e.idNumber || '', e.passportNumber || '',
+                    e.passportExpiry || '', e.idVisaExpiry || '', e.branch || '', status, missingItems
+                ].map(field => `"${field}"`).join(",");
+                csvContent += row + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a"); 
+            link.setAttribute("href", encodedUri); 
+            link.setAttribute("download", `HR_Complete_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link); 
+            link.click(); 
+            document.body.removeChild(link);
+            showToast("Complete report downloaded", "success");
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('open');
+            }
+        }
+    </script>
 </body>
 </html>
